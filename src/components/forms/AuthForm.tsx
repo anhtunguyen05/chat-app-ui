@@ -3,7 +3,7 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { api } from "@/lib/api";
+import { login, register } from "@/services/authService";
 import { useState } from "react";
 import {
   Form,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {useRouter} from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -31,22 +32,27 @@ type RegisterData = z.infer<typeof registerSchema>;
 export function AuthForm({ type }: { type: "login" | "register" }) {
   const form = useForm<LoginData | RegisterData>({
     resolver: zodResolver(type === "login" ? loginSchema : registerSchema),
-    defaultValues: { email: "", password: "", ...(type === "register" && { name: "" }) },
+    defaultValues: {
+      email: "",
+      password: "",
+      ...(type === "register" && { name: "" }),
+    },
   });
 
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
+  const router = useRouter();
 
   async function onSubmit(values: any) {
     setLoading(true);
     setServerError("");
     try {
       if (type === "register") {
-        await api.post("/auth/register", values);
+        await register(values as RegisterData);
         alert("Register success!");
       } else {
-        const res = await api.post("/auth/login", values);
-        localStorage.setItem("token", res.data.accessToken);
+        const res =  await login(values as LoginData);
+        localStorage.setItem("token", res.token);
         alert("Login success!");
       }
     } catch (err: any) {
@@ -54,6 +60,11 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Hàm xử lý login bằng Google
+  function handleGoogleLogin() {
+    window.location.href = "/api/auth/google"; // Đường dẫn này tuỳ backend bạn cấu hình
   }
 
   return (
@@ -87,7 +98,11 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="you@example.com" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -115,6 +130,39 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Loading..." : type === "login" ? "Login" : "Register"}
           </Button>
+
+          <Button
+            type="button"
+            className="w-full bg-red-500 hover:bg-red-600 mt-2"
+            onClick={handleGoogleLogin}
+          >
+            Login with Google
+          </Button>
+          <div className="text-center mt-2">
+            {type === "login" ? (
+              <span>
+                Chưa có tài khoản?{" "}
+                <button
+                  type="button"
+                  className="text-blue-500 underline"
+                  onClick={() => router.push("/auth/register")}
+                >
+                  Đăng ký
+                </button>
+              </span>
+            ) : (
+              <span>
+                Đã có tài khoản?{" "}
+                <button
+                  type="button"
+                  className="text-blue-500 underline"
+                  onClick={() => router.push("/auth/login")}
+                >
+                  Đăng nhập
+                </button>
+              </span>
+            )}
+          </div>
         </form>
       </Form>
     </div>
