@@ -3,7 +3,8 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { login, register } from "@/services/authService";
+import { GoogleLogin } from "@react-oauth/google";
+import { login, register, loginWithGoogle } from "@/services/authService";
 import { useState } from "react";
 import {
   Form,
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -51,7 +52,7 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
         await register(values as RegisterData);
         alert("Register success!");
       } else {
-        const res =  await login(values as LoginData);
+        const res = await login(values as LoginData);
         localStorage.setItem("token", res.token);
         alert("Login success!");
       }
@@ -63,8 +64,13 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
   }
 
   // Hàm xử lý login bằng Google
-  function handleGoogleLogin() {
-    window.location.href = "/api/auth/google"; // Đường dẫn này tuỳ backend bạn cấu hình
+  async function handleGoogleLogin(credentialResponse: any) {
+    try {
+      const res = await loginWithGoogle(credentialResponse.credential);
+      console.log("Server:", res);
+    } catch (error) {
+      console.error("Google login error:", error);
+    }
   }
 
   return (
@@ -131,13 +137,11 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
             {loading ? "Loading..." : type === "login" ? "Login" : "Register"}
           </Button>
 
-          <Button
-            type="button"
-            className="w-full bg-red-500 hover:bg-red-600 mt-2"
-            onClick={handleGoogleLogin}
-          >
-            Login with Google
-          </Button>
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => console.log("Google Login Failed")}
+          />
+
           <div className="text-center mt-2">
             {type === "login" ? (
               <span>
