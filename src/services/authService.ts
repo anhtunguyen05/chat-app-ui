@@ -33,6 +33,11 @@ export async function register(data: RegisterData): Promise<AuthResponse> {
   return res.data;
 }
 
+export async function loginWithGoogle(token: string): Promise<AuthResponse> {
+  const res = await api.post<AuthResponse>("/auth/google", token);
+  return res.data;
+}
+
 // Lấy thông tin user hiện tại
 export async function getProfile() {
   const res = await api.get("/auth/me");
