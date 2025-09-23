@@ -25,7 +25,7 @@ export default function SearchBar() {
       {/* Nút + ô search */}
       <div
         className={cn(
-          "flex items-center gap-2 bg-gray-800 text-gray-300 rounded-full transition-all duration-200 px-3 py-2",
+          "flex items-center gap-2 bg-gray-100 text-gray-900 rounded-full transition-all duration-200 px-3 py-2",
           // mobile: khi open mở rộng, desktop luôn rộng
           open ? "w-64" : "w-10 justify-center md:w-64 md:justify-start"
         )}
@@ -34,7 +34,7 @@ export default function SearchBar() {
           onClick={() => setOpen((prev) => !prev)}
           className="flex-shrink-0"
         >
-          <Search className="w-5 h-5" />
+          <Search className="w-5 h-7" />
         </button>
 
         {/* input:
