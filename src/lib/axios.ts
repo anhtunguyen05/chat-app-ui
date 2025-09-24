@@ -3,34 +3,24 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
-  withCredentials: true, // Gửi cookie nếu backend dùng session
-  timeout: 10000, // 10 giây
+  withCredentials: true, // 🔑 bắt buộc để gửi kèm cookie
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ✅ Interceptor: tự động gắn token vào header (nếu có)
-api.interceptors.request.use(
-  (config) => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// ❌ KHÔNG cần interceptor gắn token nữa
+// Cookie httpOnly đã được trình duyệt tự gửi
 
-// ✅ Interceptor: xử lý lỗi trả về
+// ✅ Xử lý lỗi trả về
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Ví dụ: token hết hạn → logout hoặc refresh
-      console.warn("Unauthorized, maybe redirect to login...");
+      // Token trong cookie hết hạn → xử lý logout / refresh
+      console.warn("⚠️ Unauthorized: token có thể đã hết hạn");
+      // Ví dụ: window.location.href = "/login";
     }
     return Promise.reject(error);
   }

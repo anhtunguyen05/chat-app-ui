@@ -9,12 +9,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Icon } from "@/components/icon/icon";
 import { ReactNode } from "react";
+import { getProfile, logout } from "@/services/authService";
 
 interface UserDropdownProps {
   children: ReactNode; // ✅ nhận children làm trigger
   name?: string;
   email?: string;
   onLogout?: () => void;
+}
+
+const toggleDarkMode = async () => {
+  await getProfile();
 }
 
 export default function UserDropdown({
@@ -39,9 +44,9 @@ export default function UserDropdown({
           {email && <p className="text-sm text-gray-500">{email}</p>}
         </div>
 
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={toggleDarkMode} className="cursor-pointer">
           {" "}
-          <Icon name="moon" buttonClassName="w-8 h-8"></Icon>Chế độ tối
+          <Icon name="moon" buttonClassName="w-8 h-8" ></Icon>Chế độ tối
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

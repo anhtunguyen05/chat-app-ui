@@ -53,7 +53,7 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
         alert("Register success!");
       } else {
         const res = await login(values as LoginData);
-        localStorage.setItem("token", res.token);
+        // localStorage.setItem("token", res.token);
         alert("Login success!");
       }
     } catch (err: any) {
