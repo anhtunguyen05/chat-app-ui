@@ -16,7 +16,6 @@ export interface AuthResponse {
   token: string;
   user: {
     id: string;
-    name: string;
     email: string;
   };
 }
@@ -33,9 +32,14 @@ export async function register(data: RegisterData): Promise<AuthResponse> {
   return res.data;
 }
 
+// Đăng nhập bằng Google
 export async function loginWithGoogle(token: string): Promise<AuthResponse> {
-  const res = await api.post<AuthResponse>("/auth/google", token);
+  const res = await api.post<AuthResponse>("/auth/google",{ token });
   return res.data;
+}
+
+export async function logout() {
+  await api.post("/auth/logout");
 }
 
 // Lấy thông tin user hiện tại
