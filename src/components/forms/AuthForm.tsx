@@ -4,7 +4,6 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GoogleLogin } from "@react-oauth/google";
-import { login, register, loginWithGoogle } from "@/services/authService";
 import { useState } from "react";
 import {
   Form,
@@ -17,6 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useAppSelector } from "@/hooks/useAppSelector";
+import { loginRequest, registerRequest, loginWithGoogleRequest } from "@/features/auth/authSlice";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -40,6 +42,8 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
     },
   });
 
+  const dispatch = useAppDispatch();
+
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
   const router = useRouter();
@@ -49,11 +53,10 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
     setServerError("");
     try {
       if (type === "register") {
-        await register(values as RegisterData);
+        dispatch(registerRequest(values as RegisterData));
         alert("Register success!");
       } else {
-        const res = await login(values as LoginData);
-        // localStorage.setItem("token", res.token);
+        dispatch(loginRequest(values as LoginData));
         alert("Login success!");
       }
     } catch (err: any) {
@@ -66,8 +69,8 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
   // Hàm xử lý login bằng Google
   async function handleGoogleLogin(credentialResponse: any) {
     try {
-      const res = await loginWithGoogle(credentialResponse.credential);
-      console.log("Server:", res);
+      dispatch(loginWithGoogleRequest({ token: credentialResponse.credential }));
+      alert("Login with Google success!");
     } catch (error) {
       console.error("Google login error:", error);
     }

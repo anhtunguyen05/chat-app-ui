@@ -3,15 +3,14 @@ import UserAvatar from "@/components/user-avatar/user-avatar";
 import UserDropdown from "@/components/header/interaction/user-menu/user-menu";
 import Image from "next/image";
 import { logout } from "@/services/authService";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { logoutRequest } from "@/features/auth/authSlice";
 
 export default function Interaction() {
+  const dispatch = useAppDispatch();
+
   const handleLogout = async () => {
-    try {
-      await logout();
-      console.log("Logged out successfully");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    dispatch(logoutRequest());
   };
 
   return (
@@ -23,11 +22,11 @@ export default function Interaction() {
         onLogout={() => handleLogout()}
       >
         <div>
-            <UserAvatar
-              size={40}
-              isOnline
-              className="border border-gray-200 hover:ring-2 hover:ring-gray-300"
-            />
+          <UserAvatar
+            size={40}
+            isOnline
+            className="border border-gray-200 hover:ring-2 hover:ring-gray-300"
+          />
         </div>
       </UserDropdown>
     </div>
