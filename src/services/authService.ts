@@ -43,7 +43,7 @@ export async function logout() {
 }
 
 // Lấy thông tin user hiện tại
-export async function getProfile() {
-  const res = await api.get("/auth/me");
-  return res.data;
-}
+// export async function getProfile() {
+//   const res = await api.get("/users/me");
+//   return res.data;
+// }
