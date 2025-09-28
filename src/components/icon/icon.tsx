@@ -9,6 +9,7 @@ import {
   Menu,
   Search,
   Moon,
+  Sun,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -22,15 +23,16 @@ export const Icons = {
   menu: Menu,
   search: Search,
   moon: Moon,
+  sun: Sun,
   chevronDown: ChevronDown,
   chevronUp: ChevronUp,
 };
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
   name: keyof typeof Icons;
-  size?: number;                 // 👉 size của icon SVG
-  className?: string;            // 👉 class của icon SVG
-  buttonClassName?: string;      // 👉 class của button (để chỉnh width/height)
+  size?: number; // 👉 size của icon SVG
+  className?: string; // 👉 class của icon SVG
+  buttonClassName?: string; // 👉 class của button (để chỉnh width/height)
 }
 
 export function Icon({
@@ -46,7 +48,7 @@ export function Icon({
     <button
       type="button"
       className={`flex items-center justify-center
-                  rounded-full bg-gray-200 hover:bg-gray-300
+                  rounded-full bg-gray-200 dark:bg-gray-900 hover:bg-gray-300
                   transition-colors ${buttonClassName ?? "w-10 h-10"}`}
     >
       <LucideIcon size={size} className={className} {...iconProps} />

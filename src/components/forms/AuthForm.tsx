@@ -54,10 +54,10 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
     try {
       if (type === "register") {
         dispatch(registerRequest(values as RegisterData));
-        alert("Register success!");
+        router.push("/auth/login");
       } else {
         dispatch(loginRequest(values as LoginData));
-        alert("Login success!");
+        router.push("/chat");
       }
     } catch (err: any) {
       setServerError(err.response?.data?.message || "Something went wrong");
@@ -70,7 +70,7 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
   async function handleGoogleLogin(credentialResponse: any) {
     try {
       dispatch(loginWithGoogleRequest({ token: credentialResponse.credential }));
-      alert("Login with Google success!");
+      router.push("/chat");
     } catch (error) {
       console.error("Google login error:", error);
     }
