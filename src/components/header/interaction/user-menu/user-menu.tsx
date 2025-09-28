@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Icon } from "@/components/icon/icon";
+import ThemeToggle from "@/components/header/interaction/user-menu/theme-toggle";
 import { ReactNode } from "react";
 // import { getProfile } from "@/services/userService";
 
@@ -20,7 +21,7 @@ interface UserDropdownProps {
 
 const toggleDarkMode = async () => {
   // await getProfile();
-}
+};
 
 export default function UserDropdown({
   children,
@@ -44,9 +45,8 @@ export default function UserDropdown({
           {email && <p className="text-sm text-gray-500">{email}</p>}
         </div>
 
-        <DropdownMenuItem onClick={toggleDarkMode} className="cursor-pointer">
-          {" "}
-          <Icon name="moon" buttonClassName="w-8 h-8" ></Icon>Chế độ tối
+        <DropdownMenuItem>
+          <ThemeToggle></ThemeToggle>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
