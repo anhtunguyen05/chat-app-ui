@@ -1,5 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AuthState, User, LoginPayload, RegisterPayload, LoginGooglePayload } from "./authType";
+import {
+  AuthState,
+  User,
+  LoginPayload,
+  RegisterPayload,
+  LoginGooglePayload,
+} from "./authType";
 import { loginWithGoogle } from "@/services/authService";
 
 const initialState: AuthState = {
@@ -50,7 +56,7 @@ const authSlice = createSlice({
     },
 
     // ---- LOGOUT ----
-   logoutRequest(state) {
+    logoutRequest(state) {
       state.loading = true;
     },
     logoutSuccess(state) {
