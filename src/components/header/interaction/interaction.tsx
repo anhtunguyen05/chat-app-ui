@@ -1,8 +1,6 @@
 import Notification from "@/components/header/notification/notification";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import UserDropdown from "@/components/header/interaction/user-menu/user-menu";
-import Image from "next/image";
-import { logout } from "@/services/authService";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { logoutRequest } from "@/features/auth/authSlice";
 

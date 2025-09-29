@@ -15,15 +15,22 @@ const api = axios.create({
 
 // ✅ Xử lý lỗi trả về
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token trong cookie hết hạn → xử lý logout / refresh
-      console.warn("⚠️ Unauthorized: token có thể đã hết hạn");
-      // Ví dụ: window.location.href = "/login";
+  res => res,
+  async (error) => {
+    const original = error.config;
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      try {
+        await api.post("/auth/refresh-token");     // server set lại accessToken
+        return api(original);                // retry request gốc
+      } catch {
+        // Refresh cũng fail => logout
+        window.location.href = "/auth/login";
+      }
     }
     return Promise.reject(error);
   }
 );
+
 
 export default api;

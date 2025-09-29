@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  House,
   Bell,
   User,
   Settings,
@@ -12,9 +13,12 @@ import {
   Sun,
   ChevronDown,
   ChevronUp,
+  Ellipsis,
+  SquarePen,
 } from "lucide-react";
 
 export const Icons = {
+  house: House,
   bell: Bell,
   user: User,
   settings: Settings,
@@ -26,6 +30,8 @@ export const Icons = {
   sun: Sun,
   chevronDown: ChevronDown,
   chevronUp: ChevronUp,
+  ellipsis: Ellipsis,
+  squarePen: SquarePen,
 };
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
@@ -46,7 +52,7 @@ export function Icon({
 
   return (
     <button
-      type="button"
+      type="button" aria-label="Open settings"
       className={`flex items-center justify-center
                   rounded-full bg-gray-200 dark:bg-gray-900 hover:bg-gray-300
                   transition-colors ${buttonClassName ?? "w-10 h-10"}`}
