@@ -51,13 +51,12 @@ export function Icon({
   const LucideIcon = Icons[name];
 
   return (
-    <button
-      type="button" aria-label="Open settings"
+    <div
       className={`flex items-center justify-center
-                  rounded-full bg-gray-200 dark:bg-gray-900 hover:bg-gray-300
+                  rounded-full bg-gray-200 dark:bg-neutral-800 hover:bg-neutral-300
                   transition-colors ${buttonClassName ?? "w-10 h-10"}`}
     >
       <LucideIcon size={size} className={className} {...iconProps} />
-    </button>
+    </div>
   );
 }
