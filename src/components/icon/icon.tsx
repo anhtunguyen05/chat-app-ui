@@ -15,6 +15,7 @@ import {
   ChevronUp,
   Ellipsis,
   SquarePen,
+  Camera,
 } from "lucide-react";
 
 export const Icons = {
@@ -32,6 +33,7 @@ export const Icons = {
   chevronUp: ChevronUp,
   ellipsis: Ellipsis,
   squarePen: SquarePen,
+  camera: Camera,
 };
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
