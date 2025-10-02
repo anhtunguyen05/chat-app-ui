@@ -10,7 +10,6 @@ import {
 import { Icon } from "@/components/icon/icon";
 import ThemeToggle from "@/components/header/interaction/user-menu/theme-toggle";
 import { ReactNode } from "react";
-// import { getProfile } from "@/services/userService";
 
 interface UserDropdownProps {
   children: ReactNode; // ✅ nhận children làm trigger
@@ -18,10 +17,6 @@ interface UserDropdownProps {
   email?: string;
   onLogout?: () => void;
 }
-
-const toggleDarkMode = async () => {
-  // await getProfile();
-};
 
 export default function UserDropdown({
   children,

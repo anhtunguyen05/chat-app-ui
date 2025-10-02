@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   nickname: string;
+  avatarUrl: string;
 }
 
 export interface AuthState {
@@ -9,6 +10,7 @@ export interface AuthState {
   accessToken: string | null;
   loading: boolean;
   error: string | null;
+  isAuthenticated: boolean;
 }
 
 export interface LoginPayload {
