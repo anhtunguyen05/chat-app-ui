@@ -18,13 +18,19 @@ export default function Interaction() {
     router.push("/auth/login");
   };
 
+  const handleMoveToProfile = () => {
+    router.push("/profile");
+  }
+
   return (
     <div className="flex items-center gap-4">
       <Notification />
       <UserDropdown
-        name="Nguyenanhtu"
+        name={currentUser?.nickname || "User"}
         email="anhtu@example.com"
+        avatarUrl={currentUser?.avatarUrl}
         onLogout={() => handleLogout()}
+        onMoveToProfile={() => handleMoveToProfile()}
       >
         <div>
           <UserAvatar

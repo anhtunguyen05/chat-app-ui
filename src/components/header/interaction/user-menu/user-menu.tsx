@@ -10,19 +10,24 @@ import {
 import { Icon } from "@/components/icon/icon";
 import ThemeToggle from "@/components/header/interaction/user-menu/theme-toggle";
 import { ReactNode } from "react";
+import UserAvatar from "@/components/user-avatar/user-avatar";
 
 interface UserDropdownProps {
   children: ReactNode; // ✅ nhận children làm trigger
   name?: string;
   email?: string;
+  avatarUrl?: string;
   onLogout?: () => void;
+  onMoveToProfile?: () => void;
 }
 
 export default function UserDropdown({
   children,
   name = "User",
   email,
+  avatarUrl,
   onLogout,
+  onMoveToProfile,
 }: UserDropdownProps) {
   return (
     <DropdownMenu>
@@ -35,10 +40,17 @@ export default function UserDropdown({
         sideOffset={8}
         className="w-56"
       >
-        <div className="px-3 py-2 border-b">
+        <DropdownMenuItem onClick={onMoveToProfile} className="cursor-pointer">
+          <UserAvatar
+            src={avatarUrl}
+            size={32}
+            isOnline
+            className="border border-gray-200 hover:ring-2 hover:ring-gray-300"
+          />
           <p className="font-medium">{name}</p>
-          {email && <p className="text-sm text-gray-500">{email}</p>}
-        </div>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
 
         <DropdownMenuItem>
           <ThemeToggle></ThemeToggle>
