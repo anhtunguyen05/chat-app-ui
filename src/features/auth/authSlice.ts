@@ -6,13 +6,13 @@ import {
   RegisterPayload,
   LoginGooglePayload,
 } from "./authType";
-import { loginWithGoogle } from "@/services/authService";
 
 const initialState: AuthState = {
   user: null,
   accessToken: null,
   loading: false,
   error: null,
+  isAuthenticated: false,
 };
 
 const authSlice = createSlice({
@@ -34,6 +34,7 @@ const authSlice = createSlice({
     ) {
       state.user = action.payload.user;
       state.accessToken = action.payload.accessToken;
+      state.isAuthenticated = true;
       state.loading = false;
     },
     loginFailure(state, action: PayloadAction<string>) {
@@ -68,6 +69,20 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+
+    // ---- EXTRA: SUPPORT REFRESH PAGE ----
+    setCredentials(
+      state,
+      action: PayloadAction<{ user: User; }>
+    ) {
+      state.user = action.payload.user;
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null;
+    },
+    finishLoading(state) {
+      state.loading = false;
+    },
   },
 });
 
@@ -82,6 +97,8 @@ export const {
   logoutRequest,
   logoutSuccess,
   logoutFailure,
+  setCredentials,
+  finishLoading,
 } = authSlice.actions;
 
 export default authSlice.reducer;

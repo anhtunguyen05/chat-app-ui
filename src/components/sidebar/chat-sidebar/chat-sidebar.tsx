@@ -75,9 +75,9 @@ export default function ChatSidebar() {
         </MessageItem>
         
       </div>
-      {chats.map((chat, index) => (
+      {/* {chats.map((chat, index) => (
         <ChatItem key={index} {...chat} />
-      ))}
+      ))} */}
     </div>
   );
 }

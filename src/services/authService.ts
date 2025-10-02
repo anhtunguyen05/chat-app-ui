@@ -1,6 +1,14 @@
 import api from "@/lib/axios";
 
 // Kiểu dữ liệu cho request/response (TypeScript)
+
+export interface User {
+  id: string;
+  email: string;
+  nickname: string;
+  avatarUrl: string;
+}
+
 export interface LoginData {
   email: string;
   password: string;
@@ -14,10 +22,7 @@ export interface RegisterData {
 
 export interface AuthResponse {
   token: string;
-  user: {
-    id: string;
-    email: string;
-  };
+  user: User;
 }
 
 // Đăng nhập
@@ -34,7 +39,12 @@ export async function register(data: RegisterData): Promise<AuthResponse> {
 
 // Đăng nhập bằng Google
 export async function loginWithGoogle(token: string): Promise<AuthResponse> {
-  const res = await api.post<AuthResponse>("/auth/google",{ token });
+  const res = await api.post<AuthResponse>("/auth/google", { token });
+  return res.data;
+}
+
+export async function getCurrentUser(): Promise<User> {
+  const res = await api.get<User>("/users"); // không cần id, server sẽ dựa vào token
   return res.data;
 }
 

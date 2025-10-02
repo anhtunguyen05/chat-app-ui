@@ -1,7 +1,8 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, use, useState } from "react";
 import Image from "next/image";
+import { useAppSelector } from "@/hooks/useAppSelector";
 
 interface UserAvatarProps {
   src?: string;
@@ -25,8 +26,6 @@ function UserAvatar({
   onlineClassName = "",
 }: UserAvatarProps) {
   const [fallback, setFallback] = useState<string>();
-
-  const currentUser = null; // useCurrentUser() // tạm thời để null vì chưa có auth context
 
   const handleError = () => {
     setFallback(defaultAvatar);

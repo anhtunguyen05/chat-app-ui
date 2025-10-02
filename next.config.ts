@@ -15,6 +15,19 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  images: {
+    // cách 1: đơn giản
+    domains: ["res.cloudinary.com"],
+
+    // cách 2: nếu bạn muốn kiểm soát rõ pattern
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**", // cho phép tất cả path
+      },
+    ],
+  },
 };
 
 export default nextConfig;
