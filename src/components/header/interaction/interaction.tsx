@@ -11,7 +11,7 @@ export default function Interaction() {
   const dispatch = useAppDispatch();
   
 
-  const currentUser = useAppSelector((state) => state.auth.user);
+  const currentUser = useAppSelector((state) => state.user.user);
 
   const handleLogout = async () => {
     dispatch(logoutRequest());

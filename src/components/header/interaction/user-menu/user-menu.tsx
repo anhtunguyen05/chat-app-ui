@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactNode } from "react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -9,8 +10,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Icon } from "@/components/icon/icon";
 import ThemeToggle from "@/components/header/interaction/user-menu/theme-toggle";
-import { ReactNode } from "react";
 import UserAvatar from "@/components/user-avatar/user-avatar";
+
 
 interface UserDropdownProps {
   children: ReactNode; // ✅ nhận children làm trigger

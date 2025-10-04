@@ -1,15 +1,17 @@
 "use client";
 
 import React from "react";
+import { Pencil, Plus } from "lucide-react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { Icon } from "@/components/icon/icon";
 import Header from "@/components/header/header";
 import UserAvatar from "@/components/user-avatar/user-avatar";
+import AvatarModal from "@/components/modals/avatar-modal";
 
 export default function Profile() {
   const dispatch = useAppDispatch();
-  const currentUser = useAppSelector((state) => state.auth.user);
+  const currentUser = useAppSelector((state) => state.user.user);
 
   return (
     <div className="min-h-screen">
@@ -18,7 +20,7 @@ export default function Profile() {
 
       {/* Nội dung profile */}
       <div className="flex justify-center">
-        <div className="w-full xl:max-w-7xl px-4">
+        <div className="w-full xl:max-w-5xl px-4">
           {/* Cover photo */}
           <div className="relative w-full h-100 bg-gray-300">
             <button className="absolute bottom-3 right-3 bg-white px-3 py-1 rounded-md shadow text-sm">
@@ -43,23 +45,27 @@ export default function Profile() {
                     className="absolute bottom-2 right-2 rounded-full shadow"
                     aria-label="Open settings"
                   >
-                    <Icon name="camera" ></Icon>
+                    <AvatarModal>
+                      <Icon name="camera"></Icon>
+                    </AvatarModal>
                   </button>
                 </div>
 
                 {/* Name + Friends */}
                 <div className="ml-4 flex-1">
-                  <h1 className="text-2xl font-bold">{currentUser?.nickname}</h1>
+                  <h1 className="text-2xl font-bold">
+                    {currentUser?.nickname}
+                  </h1>
                   <p className="text-gray-600">466 người bạn</p>
                 </div>
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                  <button className="bg-blue-600 text-white px-3 py-2 rounded-md">
-                    + Thêm vào tin
+                  <button className="flex gap-2 bg-blue-600 text-white px-3 py-2 rounded-md justify-center items-center">
+                    <Plus size={18} /> Thêm vào tin
                   </button>
-                  <button className="bg-gray-200 px-3 py-2 rounded-md">
-                    ✏️ Chỉnh sửa
+                  <button className="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
+                    <Pencil size={18} /> Chỉnh sửa
                   </button>
                 </div>
               </div>

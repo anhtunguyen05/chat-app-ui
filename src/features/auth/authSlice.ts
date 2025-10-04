@@ -1,15 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { User } from "@/types/user";
 import {
   AuthState,
-  User,
   LoginPayload,
   RegisterPayload,
   LoginGooglePayload,
 } from "./authType";
 
 const initialState: AuthState = {
-  user: null,
-  accessToken: null,
   loading: false,
   error: null,
   isAuthenticated: false,
@@ -28,12 +26,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    loginSuccess(
-      state,
-      action: PayloadAction<{ user: User; accessToken: string }>
-    ) {
-      state.user = action.payload.user;
-      state.accessToken = action.payload.accessToken;
+    loginSuccess(state,) {
       state.isAuthenticated = true;
       state.loading = false;
     },
@@ -47,8 +40,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    registerSuccess(state, action: PayloadAction<User>) {
-      state.user = action.payload;
+    registerSuccess(state,) {
       state.loading = false;
     },
     registerFailure(state, action: PayloadAction<string>) {
@@ -61,8 +53,6 @@ const authSlice = createSlice({
       state.loading = true;
     },
     logoutSuccess(state) {
-      state.user = null;
-      state.accessToken = null;
       state.loading = false;
     },
     logoutFailure(state, action: PayloadAction<string>) {
@@ -71,15 +61,6 @@ const authSlice = createSlice({
     },
 
     // ---- EXTRA: SUPPORT REFRESH PAGE ----
-    setCredentials(
-      state,
-      action: PayloadAction<{ user: User; }>
-    ) {
-      state.user = action.payload.user;
-      state.isAuthenticated = true;
-      state.loading = false;
-      state.error = null;
-    },
     finishLoading(state) {
       state.loading = false;
     },
@@ -97,7 +78,6 @@ export const {
   logoutRequest,
   logoutSuccess,
   logoutFailure,
-  setCredentials,
   finishLoading,
 } = authSlice.actions;
 
