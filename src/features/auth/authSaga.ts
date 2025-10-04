@@ -11,6 +11,7 @@ import {
   logoutSuccess,
   logoutFailure,
 } from "./authSlice";
+import { setUser, clearUser } from "@/features/user/userSlice";
 import {
   loginWithGoogle,
   login,
@@ -22,17 +23,15 @@ import type { Effect } from "redux-saga/effects";
 import type {
   LoginPayload,
   RegisterPayload,
-  User,
   LoginGooglePayload,
 } from "./authType";
+import type { User } from "@/types/user";
 
 function* handleLogin(action: PayloadAction<LoginPayload>) {
   try {
-    const data: { user: any; accessToken: string } = yield call(
-      login,
-      action.payload
-    );
-    yield put(loginSuccess(data));
+    const data: { user: any } = yield call(login, action.payload);
+    yield put(loginSuccess());
+    yield put(setUser(data.user));
   } catch (error: any) {
     yield put(loginFailure(error.message || "Login failed"));
   }
@@ -44,7 +43,8 @@ function* handleLoginWithGoogle(action: PayloadAction<LoginGooglePayload>) {
       loginWithGoogle,
       action.payload.token
     );
-    yield put(loginSuccess(data));
+    yield put(loginSuccess());
+    yield put(setUser(data.user));
   } catch (error: any) {
     yield put(loginFailure(error.message || "Login failed"));
   }
@@ -55,16 +55,18 @@ function* handleRegister(
 ): Generator<Effect, void, User> {
   try {
     const user = yield call(register, action.payload);
-    yield put(registerSuccess(user));
+    yield put(registerSuccess());
+    yield put(setUser(user));
   } catch (error: any) {
     yield put(registerFailure(error.message || "Register failed"));
   }
 }
 
-function* handleLogout(action: PayloadAction<void>) {
+function* handleLogout() {
   try {
     yield call(logout);
     yield put(logoutSuccess());
+    yield put(clearUser());
   } catch (error: any) {
     yield put(logoutFailure(error.message || "Logout failed"));
   }

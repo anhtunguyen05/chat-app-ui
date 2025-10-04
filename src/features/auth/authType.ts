@@ -1,13 +1,6 @@
-export interface User {
-  id: string;
-  email: string;
-  nickname: string;
-  avatarUrl: string;
-}
+import { User } from "@/types/user";
 
 export interface AuthState {
-  user: User | null;
-  accessToken: string | null;
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;

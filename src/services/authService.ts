@@ -1,13 +1,6 @@
 import api from "@/lib/axios";
-
+import { User } from "@/types/user";
 // Kiểu dữ liệu cho request/response (TypeScript)
-
-export interface User {
-  id: string;
-  email: string;
-  nickname: string;
-  avatarUrl: string;
-}
 
 export interface LoginData {
   email: string;
