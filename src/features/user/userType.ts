@@ -1,6 +1,6 @@
 import { User } from "@/types/user";
 
-export interface UpdateAvatarPayload {
+export interface UpdateImagePayload {
   file: File;
 }
 

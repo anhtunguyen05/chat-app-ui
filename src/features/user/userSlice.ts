@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/types/user";
-import { UserState, UpdateAvatarPayload, UpdateNicknamePayload } from "./userType";
+import { UserState, UpdateImagePayload, UpdateNicknamePayload } from "./userType";
 
 const initialState: UserState = {
   user: null,
@@ -22,7 +22,12 @@ const userSlice = createSlice({
     },
 
     // --- UPDATE PROFILE ---
-    updateAvatarRequest(state, _action: PayloadAction<UpdateAvatarPayload>) {
+    updateAvatarRequest(state, _action: PayloadAction<UpdateImagePayload>) {
+      state.loading = true;
+      state.error = null;
+      state.success = false;
+    },
+    updateCoverRequest(state, _action: PayloadAction<UpdateImagePayload>) {
       state.loading = true;
       state.error = null;
       state.success = false;
@@ -54,6 +59,7 @@ export const {
   setUser,
   clearUser,
   updateAvatarRequest,
+  updateCoverRequest,
   updateProfileSuccess,
   updateProfileFailure,
   updateNicknameRequest,

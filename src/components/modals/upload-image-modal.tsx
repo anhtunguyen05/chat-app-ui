@@ -11,14 +11,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { updateAvatarRequest, resetSuccess } from "@/features/user/userSlice";
-import { UpdateAvatarPayload } from "@/features/user/userType";
+import { resetSuccess } from "@/features/user/userSlice";
 
-interface AvatarModalProps {
+interface UploadImageModalProps {
   children: React.ReactNode;
+  type: "avatar" | "cover"; // ✅ loại upload
+  onUpload: (file: File) => void; // ✅ action upload truyền từ ngoài
+  title?: string; // ✅ cho phép đổi tiêu đề
 }
 
-export default function AvatarModal({ children }: AvatarModalProps) {
+export default function UploadImageModal({
+  children,
+  type,
+  onUpload,
+  title,
+}: UploadImageModalProps) {
   const dispatch = useAppDispatch();
   const { success, loading } = useAppSelector((state) => state.user);
 
@@ -30,15 +37,13 @@ export default function AvatarModal({ children }: AvatarModalProps) {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      const url = URL.createObjectURL(selectedFile);
-      setPreview(url);
+      setPreview(URL.createObjectURL(selectedFile));
     }
   };
 
   const handleSave = () => {
     if (!file) return;
-
-    dispatch(updateAvatarRequest({ file }));
+    onUpload(file);
   };
 
   React.useEffect(() => {
@@ -46,8 +51,6 @@ export default function AvatarModal({ children }: AvatarModalProps) {
       setOpen(false);
       setFile(null);
       setPreview(null);
-
-      // reset lại success cho lần sau
       dispatch(resetSuccess());
     }
   }, [success, dispatch]);
@@ -58,11 +61,12 @@ export default function AvatarModal({ children }: AvatarModalProps) {
 
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Chọn ảnh đại diện</DialogTitle>
+          <DialogTitle>
+            {title || (type === "avatar" ? "Chọn ảnh đại diện" : "Chọn ảnh bìa")}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-6">
-          {/* Upload ảnh mới */}
           <div>
             <h3 className="font-semibold mb-2">Tải ảnh mới</h3>
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-6 cursor-pointer hover:bg-gray-50">
@@ -81,20 +85,23 @@ export default function AvatarModal({ children }: AvatarModalProps) {
                 <img
                   src={preview}
                   alt="preview"
-                  className="w-40 h-40 rounded-full object-cover border"
+                  className={
+                    type === "avatar"
+                      ? "w-40 h-40 rounded-full object-cover border"
+                      : "w-full h-40 rounded-md object-cover border"
+                  }
                 />
               </div>
             )}
           </div>
         </div>
 
-        {/* Footer action */}
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="secondary" onClick={() => setOpen(false)}>
             Hủy
           </Button>
           <Button variant="default" onClick={handleSave}>
-             {loading ? "Đang lưu..." : "Lưu ảnh"}
+            {loading ? "Đang lưu..." : "Lưu ảnh"}
           </Button>
         </div>
       </DialogContent>

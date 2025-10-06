@@ -4,18 +4,36 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/types/user";
 import {
   updateAvatarRequest,
+  updateCoverRequest,
   updateProfileSuccess,
   updateProfileFailure,
-  updateNicknameRequest
+  updateNicknameRequest,
 } from "./userSlice";
-import { UpdateAvatarPayload, UpdateNicknamePayload } from "@/features/user/userType";
-import { updateAvatar, updateNickname } from "@/services/userService";
+import {
+  UpdateImagePayload,
+  UpdateNicknamePayload,
+} from "@/features/user/userType";
+import {
+  updateAvatar,
+  updateCover,
+  updateNickname,
+} from "@/services/userService";
 import { UpdateResponse } from "@/services/userService";
 
-// Saga worker
-function* handleUpdateAvatar(action: PayloadAction<UpdateAvatarPayload>) {
+function* handleUpdateAvatar(action: PayloadAction<UpdateImagePayload>) {
   try {
     const data: UpdateResponse = yield call(updateAvatar, action.payload);
+    yield put(updateProfileSuccess(data.user)); // cập nhật state
+  } catch (error: any) {
+    yield put(
+      updateProfileFailure(error.response?.data?.message || "Update failed")
+    );
+  }
+}
+
+function* handleUpdateCover(action: PayloadAction<UpdateImagePayload>) {
+  try {
+    const data: UpdateResponse = yield call(updateCover, action.payload);
     yield put(updateProfileSuccess(data.user)); // cập nhật state
   } catch (error: any) {
     yield put(
@@ -38,5 +56,6 @@ function* handleUpdateNickname(action: PayloadAction<UpdateNicknamePayload>) {
 // Saga watcher
 export default function* userSaga() {
   yield takeLatest(updateAvatarRequest.type, handleUpdateAvatar);
-  yield takeLatest(updateNicknameRequest.type, handleUpdateNickname)
+  yield takeLatest(updateCoverRequest.type, handleUpdateCover);
+  yield takeLatest(updateNicknameRequest.type, handleUpdateNickname);
 }
