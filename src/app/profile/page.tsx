@@ -1,16 +1,22 @@
 "use client";
 
 import React from "react";
-import { Pencil, Plus } from "lucide-react";
+import Image from "next/image";
+import { Pencil, Camera } from "lucide-react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
+import {
+  updateAvatarRequest,
+  updateCoverRequest,
+} from "@/features/user/userSlice";
 import { Icon } from "@/components/icon/icon";
 import Header from "@/components/header/header";
 import UserAvatar from "@/components/user-avatar/user-avatar";
-import AvatarModal from "@/components/modals/avatar-modal";
+import UploadImageModal from "@/components/modals/upload-image-modal";
 import ProfileModal from "@/components/modals/profile-modal";
 
 export default function Profile() {
+  const defaultAvatar = "/default-avatar.jpg";
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.user.user);
 
@@ -24,9 +30,21 @@ export default function Profile() {
         <div className="w-full xl:max-w-5xl px-4">
           {/* Cover photo */}
           <div className="relative w-full h-100 bg-gray-300">
-            <button className="absolute bottom-3 right-3 bg-white px-3 py-1 rounded-md shadow text-sm">
-              Thêm ảnh bìa
-            </button>
+            <Image
+              src={currentUser?.coverUrl || defaultAvatar}
+              alt="cover"
+              fill
+              className="object-cover"
+              priority
+            />
+            <UploadImageModal
+              type="cover"
+              onUpload={(file) => dispatch(updateCoverRequest({ file }))}
+            >
+              <button className="flex justify-center items-center gap-1 absolute bottom-3 right-3 bg-white px-3 py-1 rounded-md shadow text-sm">
+                <Camera /> Thêm ảnh bìa
+              </button>
+            </UploadImageModal>
           </div>
 
           {/* Profile info */}
@@ -46,9 +64,14 @@ export default function Profile() {
                     className="absolute bottom-2 right-2 rounded-full shadow"
                     aria-label="Open settings"
                   >
-                    <AvatarModal>
+                    <UploadImageModal
+                      type="avatar"
+                      onUpload={(file) =>
+                        dispatch(updateAvatarRequest({ file }))
+                      }
+                    >
                       <Icon name="camera"></Icon>
-                    </AvatarModal>
+                    </UploadImageModal>
                   </button>
                 </div>
 

@@ -12,9 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { updateNicknameRequest, resetSuccess } from "@/features/user/userSlice";
+import {
+  updateNicknameRequest,
+  updateAvatarRequest,
+  resetSuccess,
+} from "@/features/user/userSlice";
+import UploadImageModal from "@/components/modals/upload-image-modal";
 import UserAvatar from "@/components/user-avatar/user-avatar";
-import AvatarModal from "@/components/modals/avatar-modal";
 
 interface ProfileModalProps {
   children: React.ReactNode;
@@ -60,7 +64,10 @@ export default function ProfileModal({
           {/* Title + Add button */}
           <div className="w-full flex justify-between items-center mb-2">
             <p className="font-medium">Ảnh đại diện</p>
-            <AvatarModal>
+            <UploadImageModal
+              type="avatar"
+              onUpload={(file) => dispatch(updateAvatarRequest({ file }))}
+            >
               <Button
                 variant="ghost"
                 size="sm"
@@ -68,7 +75,7 @@ export default function ProfileModal({
               >
                 Thêm
               </Button>
-            </AvatarModal>
+            </UploadImageModal>
           </div>
 
           {/* Avatar */}
