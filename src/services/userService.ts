@@ -5,6 +5,10 @@ export interface UpdateAvatarData {
   file: File;
 }
 
+export interface UpdateNicknameData {
+  nickname: string;
+}
+
 export interface UpdateResponse {
   message: string;
   user: User;
@@ -18,5 +22,12 @@ export async function updateAvatar(
   const res = await api.put<UpdateResponse>("/users/avatar", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+  return res.data;
+}
+
+export async function updateNickname(
+  data: UpdateNicknameData
+): Promise<UpdateResponse> {
+  const res = await api.put<UpdateResponse>("/users", data);
   return res.data;
 }
