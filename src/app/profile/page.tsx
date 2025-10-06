@@ -8,6 +8,7 @@ import { Icon } from "@/components/icon/icon";
 import Header from "@/components/header/header";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import AvatarModal from "@/components/modals/avatar-modal";
+import ProfileModal from "@/components/modals/profile-modal";
 
 export default function Profile() {
   const dispatch = useAppDispatch();
@@ -61,12 +62,13 @@ export default function Profile() {
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                  <button className="flex gap-2 bg-blue-600 text-white px-3 py-2 rounded-md justify-center items-center">
+                  {/* <button className="flex gap-2 bg-blue-600 text-white px-3 py-2 rounded-md justify-center items-center">
                     <Plus size={18} /> Thêm vào tin
-                  </button>
-                  <button className="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
+                  </button> */}
+
+                  <ProfileModal classname="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
                     <Pencil size={18} /> Chỉnh sửa
-                  </button>
+                  </ProfileModal>
                 </div>
               </div>
 

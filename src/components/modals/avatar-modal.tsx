@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { updateProfileRequest, resetSuccess } from "@/features/user/userSlice";
+import { updateAvatarRequest, resetSuccess } from "@/features/user/userSlice";
 import { UpdateAvatarPayload } from "@/features/user/userType";
 
 interface AvatarModalProps {
@@ -38,7 +38,7 @@ export default function AvatarModal({ children }: AvatarModalProps) {
   const handleSave = () => {
     if (!file) return;
 
-    dispatch(updateProfileRequest({ file }));
+    dispatch(updateAvatarRequest({ file }));
   };
 
   React.useEffect(() => {
@@ -93,7 +93,7 @@ export default function AvatarModal({ children }: AvatarModalProps) {
           <Button variant="secondary" onClick={() => setOpen(false)}>
             Hủy
           </Button>
-          <Button variant="default" onClick={handleSave} disabled={loading}>
+          <Button variant="default" onClick={handleSave}>
              {loading ? "Đang lưu..." : "Lưu ảnh"}
           </Button>
         </div>

@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/types/user";
-import { UserState } from "./userType";
+import { UserState, UpdateAvatarPayload, UpdateNicknamePayload } from "./userType";
 
 const initialState: UserState = {
   user: null,
   loading: false,
   error: null,
-  success: false
+  success: false,
 };
 
 const userSlice = createSlice({
@@ -22,33 +22,41 @@ const userSlice = createSlice({
     },
 
     // --- UPDATE PROFILE ---
-    updateProfileRequest(state, _action: PayloadAction<{ file: File }>) {
+    updateAvatarRequest(state, _action: PayloadAction<UpdateAvatarPayload>) {
       state.loading = true;
       state.error = null;
-      state.success=false
+      state.success = false;
+    },
+    updateNicknameRequest(state, _action: PayloadAction<UpdateNicknamePayload>) {
+      state.loading = true;
+      state.error = null;
+      state.success = false;
     },
     updateProfileSuccess(state, action: PayloadAction<User>) {
       state.loading = false;
       state.user = action.payload;
-       state.success=true // cập nhật profile mới
+      state.success = true; // cập nhật Profile mới
     },
     updateProfileFailure(state, action: PayloadAction<string>) {
       state.loading = false;
       state.error = action.payload;
-       state.success=false
+      state.success = false;
     },
     resetSuccess(state) {
-      state.success = false
-    }
+      state.success = false;
+    },
+    
+    
   },
 });
 
 export const {
   setUser,
   clearUser,
-  updateProfileRequest,
+  updateAvatarRequest,
   updateProfileSuccess,
   updateProfileFailure,
-  resetSuccess
+  updateNicknameRequest,
+  resetSuccess,
 } = userSlice.actions;
 export default userSlice.reducer;
