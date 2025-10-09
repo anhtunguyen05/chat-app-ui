@@ -2,7 +2,8 @@
 
 import React from "react";
 import Image from "next/image";
-import { Pencil, Camera } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Pencil, Camera, UserPlus, MessageCircle, UserCheck} from "lucide-react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import {
@@ -14,11 +15,39 @@ import Header from "@/components/header/header";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import UploadImageModal from "@/components/modals/upload-image-modal";
 import ProfileModal from "@/components/modals/profile-modal";
+import { getUser } from "@/services/userService";
 
 export default function Profile() {
   const defaultAvatar = "/default-avatar.jpg";
+
   const dispatch = useAppDispatch();
+
+  const params = useParams();
+  const slug = params.slug as string;
+
   const currentUser = useAppSelector((state) => state.user.user);
+
+  const [profileUser, setProfileUser] = React.useState(currentUser);
+  const [relationship, setRelationship] = React.useState("");
+
+  React.useEffect(() => {
+    // Nếu là trang của chính mình
+    if (slug === currentUser?.slug) {
+      setProfileUser(currentUser);
+    } else {
+      // Nếu là user khác → gọi API BE để lấy thông tin
+      const fetchUserBySlug = async () => {
+        try {
+          const res = await getUser(slug);
+          setProfileUser(res.user);
+          setRelationship(res.relationship);
+        } catch (err) {
+          console.error("❌ Lỗi khi tải user:", err);
+        }
+      };
+      fetchUserBySlug();
+    }
+  }, [slug, currentUser]);
 
   return (
     <div className="min-h-screen">
@@ -31,7 +60,7 @@ export default function Profile() {
           {/* Cover photo */}
           <div className="relative w-full h-100 bg-gray-300">
             <Image
-              src={currentUser?.coverUrl || defaultAvatar}
+              src={profileUser?.coverUrl || defaultAvatar}
               alt="cover"
               fill
               className="object-cover"
@@ -55,7 +84,7 @@ export default function Profile() {
                 {/* Avatar */}
                 <div className="relative">
                   <UserAvatar
-                    src={currentUser?.avatarUrl}
+                    src={profileUser?.avatarUrl}
                     size={170}
                     isOnline
                     className="border border-gray-200 hover:ring-2 hover:ring-gray-300"
@@ -78,21 +107,37 @@ export default function Profile() {
                 {/* Name + Friends */}
                 <div className="ml-4 flex-1">
                   <h1 className="text-2xl font-bold">
-                    {currentUser?.nickname}
+                    {profileUser?.nickname}
                   </h1>
                   <p className="text-gray-600">466 người bạn</p>
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2">
-                  {/* <button className="flex gap-2 bg-blue-600 text-white px-3 py-2 rounded-md justify-center items-center">
-                    <Plus size={18} /> Thêm vào tin
-                  </button> */}
+                {slug === currentUser?.slug && (
+                  <div className="flex gap-2">
+                    <ProfileModal classname="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
+                      <Pencil size={18} /> Chỉnh sửa
+                    </ProfileModal>
+                  </div>
+                )}
 
-                  <ProfileModal classname="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
-                    <Pencil size={18} /> Chỉnh sửa
-                  </ProfileModal>
-                </div>
+                {slug !== currentUser?.slug && (
+                  <div className="flex gap-2">
+                    {relationship === "friends" && (
+                      <div className="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
+                        <UserCheck size={18} /> Bạn bè
+                      </div>
+                    )}
+                    {relationship === "pending" && (
+                      <div className="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
+                        <UserPlus size={18} /> Đã gửi lời mời
+                      </div>
+                    )}
+                    <div className="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
+                      <MessageCircle size={18} /> Nhắn tin
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Tabs */}

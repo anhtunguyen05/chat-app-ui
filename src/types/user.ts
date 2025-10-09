@@ -3,5 +3,6 @@ export interface User {
   email: string;
   nickname: string;
   avatarUrl: string;
-  coverUrl: string
+  coverUrl: string;
+  slug: string
 }

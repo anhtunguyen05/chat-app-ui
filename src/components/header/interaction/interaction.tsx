@@ -19,7 +19,7 @@ export default function Interaction() {
   };
 
   const handleMoveToProfile = () => {
-    router.push("/profile");
+    router.push(`/profile/${currentUser?.slug}`);
   }
 
   return (

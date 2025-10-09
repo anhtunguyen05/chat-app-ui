@@ -14,6 +14,11 @@ export interface UpdateResponse {
   user: User;
 }
 
+export interface GetUserResponse {
+  user: User;
+  relationship: string;
+}
+
 export async function updateAvatar(
   data: UpdateImageData
 ): Promise<UpdateResponse> {
@@ -40,5 +45,10 @@ export async function updateNickname(
   data: UpdateNicknameData
 ): Promise<UpdateResponse> {
   const res = await api.put<UpdateResponse>("/users", data);
+  return res.data;
+}
+
+export async function getUser(slug: string): Promise<GetUserResponse> {
+  const res = await api.get<GetUserResponse>(`/users/${slug}`); // không cần id, server sẽ dựa vào token
   return res.data;
 }
