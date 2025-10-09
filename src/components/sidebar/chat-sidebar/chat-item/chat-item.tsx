@@ -2,29 +2,32 @@ import React from "react";
 import Image from "next/image";
 
 interface ChatItemProps {
-  avatar: string;
-  name: string;
-  message: string;
-  time: string;
+  avatarUrl: string;
+  nickname: string;
+  message?: string;
+  time?: string;
   unread?: boolean;
   missedCall?: boolean;
 }
+
+const defaultAvatar = "/default-avatar.jpg";
+
 export default function ChatItem({
-  avatar,
-  name,
-  message,
-  time,
-  unread,
-  missedCall,
+  avatarUrl = defaultAvatar,
+  nickname,
+  message = "hiii",
+  time = "10",
+  unread = true,
+  missedCall = false,
 }: ChatItemProps) {
   return (
     <div className="flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer">
       <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-        <Image src={avatar} alt={name} layout="fill" objectFit="cover" />
+        <Image src={avatarUrl} alt={nickname} layout="fill" objectFit="cover" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center">
-          <p className="font-medium truncate">{name}</p>
+          <p className="font-medium truncate">{nickname}</p>
           <span className="text-xs text-gray-500 whitespace-nowrap">
             {time}
           </span>
