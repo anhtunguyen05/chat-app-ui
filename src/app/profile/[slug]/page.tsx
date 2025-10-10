@@ -3,7 +3,13 @@
 import React from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { Pencil, Camera, UserPlus, MessageCircle, UserCheck} from "lucide-react";
+import {
+  Pencil,
+  Camera,
+  UserPlus,
+  MessageCircle,
+  UserCheck,
+} from "lucide-react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import {
@@ -15,6 +21,7 @@ import Header from "@/components/header/header";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import UploadImageModal from "@/components/modals/upload-image-modal";
 import ProfileModal from "@/components/modals/profile-modal";
+import FriendButton from "./friend-button";
 import { getUser } from "@/services/userService";
 
 export default function Profile() {
@@ -28,21 +35,23 @@ export default function Profile() {
   const currentUser = useAppSelector((state) => state.user.user);
 
   const [profileUser, setProfileUser] = React.useState(currentUser);
-  const [relationship, setRelationship] = React.useState("");
+  const [relationship, setRelationship] = React.useState("none");
+
+  const handleRelationshipChange = (newStatus: string) => {
+    setRelationship(newStatus);
+  };
 
   React.useEffect(() => {
-    // Nếu là trang của chính mình
     if (slug === currentUser?.slug) {
       setProfileUser(currentUser);
     } else {
-      // Nếu là user khác → gọi API BE để lấy thông tin
       const fetchUserBySlug = async () => {
         try {
           const res = await getUser(slug);
           setProfileUser(res.user);
           setRelationship(res.relationship);
         } catch (err) {
-          console.error("❌ Lỗi khi tải user:", err);
+          console.error("Lỗi khi tải user:", err);
         }
       };
       fetchUserBySlug();
@@ -121,19 +130,26 @@ export default function Profile() {
                   </div>
                 )}
 
-                {slug !== currentUser?.slug && (
+                {slug !== currentUser?.slug && profileUser && (
                   <div className="flex gap-2">
-                    {relationship === "friends" && (
-                      <div className="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
-                        <UserCheck size={18} /> Bạn bè
-                      </div>
-                    )}
-                    {relationship === "pending" && (
-                      <div className="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
-                        <UserPlus size={18} /> Đã gửi lời mời
-                      </div>
-                    )}
-                    <div className="flex gap-2 bg-gray-200 px-3 py-2 rounded-md justify-center items-center">
+                    <FriendButton
+                      relationship={
+                        relationship as
+                          | "none"
+                          | "pending_sent"
+                          | "pending_received"
+                          | "friends"
+                      }
+                      userId={profileUser.id}
+                      onChange={handleRelationshipChange}
+                    />
+                    <div
+                      className={`flex gap-2 px-3 py-2 rounded-md justify-center items-center ${
+                        relationship === "friends"
+                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                          : "bg-gray-300 hover:bg-gray-400 text-gray-700"
+                      }`}
+                    >
                       <MessageCircle size={18} /> Nhắn tin
                     </div>
                   </div>
@@ -150,12 +166,6 @@ export default function Profile() {
                     Giới thiệu
                   </li>
                   <li className="cursor-pointer hover:text-blue-600">Bạn bè</li>
-                  <li className="cursor-pointer hover:text-blue-600">Ảnh</li>
-                  <li className="cursor-pointer hover:text-blue-600">Video</li>
-                  <li className="cursor-pointer hover:text-blue-600">Reels</li>
-                  <li className="cursor-pointer hover:text-blue-600">
-                    Xem thêm
-                  </li>
                 </ul>
               </div>
             </div>
