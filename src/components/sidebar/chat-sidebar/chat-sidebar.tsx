@@ -29,7 +29,7 @@ export default function ChatSidebar() {
   if (loading) return <p>Loading friends...</p>;
 
   return (
-    <div className="w-full max-w-sm mx-auto bg-white shadow overflow-y-auto h-screen">
+    <div className="w-full max-w-sm mx-auto bg-white h-full">
       <div className="flex justify-between gap-4 px-4 py-2 p-4">
         <MessageItem active={tab === "all"} onClick={() => setTab("all")}>
           Tất cả
@@ -41,13 +41,15 @@ export default function ChatSidebar() {
           Nhóm
         </MessageItem>
       </div>
-      {chats.map((chat) => (
-        <ChatItem
-          key={chat.id}
-          avatarUrl={chat.avatarUrl}
-          nickname={chat.nickname}
-        />
-      ))}
+      <div className="overflow-y-auto">
+        {chats.map((chat) => (
+          <ChatItem
+            key={chat.id}
+            avatarUrl={chat.avatarUrl}
+            nickname={chat.nickname}
+          />
+        ))}
+      </div>
     </div>
   );
 }
