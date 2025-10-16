@@ -17,8 +17,18 @@ import {
   SquarePen,
   Camera,
   MessageCircle,
-   Phone, Video, Info,
+  Phone,
+  Video,
+  Info,
+  Mic,
+  Image,
+  Sticker,
+  ThumbsUp,
+  Smile,
+  Type,
+  Send,
 } from "lucide-react";
+import { send } from "process";
 
 export const Icons = {
   house: House,
@@ -40,6 +50,13 @@ export const Icons = {
   phone: Phone,
   video: Video,
   info: Info,
+  mic: Mic,
+  image: Image,
+  sticker: Sticker,
+  thumbsUp: ThumbsUp,
+  smile: Smile,
+  type: Type,
+  send: Send,
 };
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
