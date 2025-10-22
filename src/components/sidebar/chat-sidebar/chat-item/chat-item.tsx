@@ -8,6 +8,7 @@ interface ChatItemProps {
   time?: string;
   unread?: boolean;
   missedCall?: boolean;
+  onClick?: () => void;
 }
 
 const defaultAvatar = "/default-avatar.jpg";
@@ -19,9 +20,10 @@ export default function ChatItem({
   time = "10",
   unread = true,
   missedCall = false,
+  onClick
 }: ChatItemProps) {
   return (
-    <div className="flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer">
+    <div className="flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer" onClick={onClick}>
       <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-200">
         <Image src={avatarUrl} alt={nickname} layout="fill" objectFit="cover" />
       </div>

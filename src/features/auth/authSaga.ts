@@ -1,4 +1,6 @@
 import { call, put, takeLatest } from "redux-saga/effects";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { Effect } from "redux-saga/effects";
 import {
   loginRequest,
   loginWithGoogleRequest,
@@ -18,8 +20,6 @@ import {
   register,
   logout,
 } from "@/services/authService";
-import type { PayloadAction } from "@reduxjs/toolkit";
-import type { Effect } from "redux-saga/effects";
 import type {
   LoginPayload,
   RegisterPayload,

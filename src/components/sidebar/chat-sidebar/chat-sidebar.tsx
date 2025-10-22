@@ -1,12 +1,20 @@
 "use client";
 
 import React from "react";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useAppSelector } from "@/hooks/useAppSelector";
 import { User } from "@/types/user";
 import ChatItem from "@/components/sidebar/chat-sidebar/chat-item/chat-item";
 import MessageItem from "@/components/message-item/message-item";
+import {
+  setSelectedUser,
+  setSelectedUserRequest,
+} from "@/features/chat/chatSlice";
 import { getFriendList } from "@/services/friendService";
 
 export default function ChatSidebar() {
+  const dispatch = useAppDispatch();
+
   const [tab, setTab] = React.useState("all");
   const [chats, setChats] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -47,6 +55,10 @@ export default function ChatSidebar() {
             key={chat.id}
             avatarUrl={chat.avatarUrl}
             nickname={chat.nickname}
+            onClick={() => {
+              console.log("Click on chat:", chat);
+              dispatch(setSelectedUserRequest(chat));
+            }}
           />
         ))}
       </div>

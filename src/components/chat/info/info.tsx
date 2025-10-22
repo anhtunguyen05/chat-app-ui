@@ -1,58 +1,65 @@
+'use client';
+
+import React from "react";
 import Image from "next/image";
-
-interface Message {
-  id: string;
-  text: string;
-  sender: "me" | "other";
-  avatar?: string;
-  replyTo?: string; // nếu có phản hồi tin nhắn
-}
-
-const messages: Message[] = [
-  {
-    id: "1",
-    text: "qua trung tú chơi hè",
-    sender: "other",
-    avatar: "/avatar1.png",
-  },
-  { id: "2", text: "đang học à", sender: "other" },
-  { id: "3", text: "Ok", sender: "me" },
-  { id: "4", text: "Mua chai nc ngọt đi", sender: "me" },
-  { id: "5", text: "ê còn chỗ ngồi k", sender: "other" },
-  { id: "6", text: "😄", sender: "other" },
-];
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useAppSelector } from "@/hooks/useAppSelector";
+import { fetchMessagesRequest } from "@/features/chat/chatSlice";
 
 export default function Info() {
-  return (
-    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-      {messages.map((msg) => (
-        <div
-          key={msg.id}
-          className={`flex ${
-            msg.sender === "me" ? "justify-end" : "justify-start"
-          }`}
-        >
-          {/* {msg.sender === "other" && msg.avatar && (
-            <Image
-              src={msg.avatar}
-              alt="avatar"
-              width={32}
-              height={32}
-              className="rounded-full mr-2"
-            />
-          )} */}
+  const dispatch = useAppDispatch();
+  const currentUserId = useAppSelector((state) => state.user.user?.id);
+  const selectedUser = useAppSelector((state) => state.chat.selectedUser);
+  const chatMessages = useAppSelector((state) => state.chat.messages) || [];
 
+  React.useEffect(() => {
+    if (selectedUser?.id) {
+      dispatch(fetchMessagesRequest(selectedUser.id));
+    }
+  }, [dispatch, selectedUser]);
+
+  return (
+    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-transparent">
+      {chatMessages.length === 0 && (
+        <div className="text-center text-gray-400 text-sm mt-4">
+          Chưa có tin nhắn nào
+        </div>
+      )}
+
+      {chatMessages.map((msg: any) => {
+        const isMine = msg.sender?.id === currentUserId;
+
+        return (
           <div
-            className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm ${
-              msg.sender === "me"
-                ? "bg-violet-600 text-white rounded-br-none"
-                : "bg-gray-200 text-black rounded-bl-none"
+            key={msg._id}
+            className={`flex items-end ${
+              isMine ? "justify-end" : "justify-start"
             }`}
           >
-            {msg.text}
+            {/* Avatar của người khác */}
+            {!isMine && msg.sender.avatarUrl && (
+              <Image
+                src={msg.sender.avatarUrl}
+                alt={msg.sender.nickname}
+                width={32}
+                height={32}
+                className="rounded-full mr-2"
+              />
+            )}
+
+            {/* Bubble tin nhắn */}
+            <div
+              className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm break-words ${
+                isMine
+                  ? "bg-violet-600 text-white rounded-br-none"
+                  : "bg-gray-200 text-black rounded-bl-none"
+              }`}
+            >
+              {msg.text}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
