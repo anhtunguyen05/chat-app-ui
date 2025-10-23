@@ -7,31 +7,23 @@ import { User } from "@/types/user";
 import ChatItem from "@/components/sidebar/chat-sidebar/chat-item/chat-item";
 import MessageItem from "@/components/message-item/message-item";
 import {
-  setSelectedUser,
+  setChatsRequest,
   setSelectedUserRequest,
+  setActiveTabRequest,
 } from "@/features/chat/chatSlice";
 import { getFriendList } from "@/services/friendService";
 
 export default function ChatSidebar() {
   const dispatch = useAppDispatch();
+  const selectedUser = useAppSelector((state) => state.chat.selectedUser);
+  const activeTab = useAppSelector((state) => state.chat.activeTab);
+  const chats = useAppSelector((state) => state.chat.chats);
 
-  const [tab, setTab] = React.useState("all");
-  const [chats, setChats] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    async function fetchFriends() {
-      try {
-        const data = await getFriendList();
-        setChats(data);
-      } catch (err) {
-        console.error("Failed to load friends:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchFriends();
+    dispatch(setChatsRequest());
+    setLoading(false);
   }, []);
 
   if (loading) return <p>Loading friends...</p>;
@@ -39,13 +31,22 @@ export default function ChatSidebar() {
   return (
     <div className="w-full max-w-sm mx-auto bg-white h-full">
       <div className="flex justify-between gap-4 px-4 py-2 p-4">
-        <MessageItem active={tab === "all"} onClick={() => setTab("all")}>
+        <MessageItem
+          active={activeTab === "all"}
+          onClick={() => dispatch(setActiveTabRequest("all"))}
+        >
           Tất cả
         </MessageItem>
-        <MessageItem active={tab === "unread"} onClick={() => setTab("unread")}>
+        <MessageItem
+          active={activeTab === "unread"}
+          onClick={() => dispatch(setActiveTabRequest("unread"))}
+        >
           Chưa đọc
         </MessageItem>
-        <MessageItem active={tab === "group"} onClick={() => setTab("group")}>
+        <MessageItem
+          active={activeTab === "group"}
+          onClick={() => dispatch(setActiveTabRequest("group"))}
+        >
           Nhóm
         </MessageItem>
       </div>
@@ -56,9 +57,9 @@ export default function ChatSidebar() {
             avatarUrl={chat.avatarUrl}
             nickname={chat.nickname}
             onClick={() => {
-              console.log("Click on chat:", chat);
               dispatch(setSelectedUserRequest(chat));
             }}
+            active={selectedUser?.id === chat.id}
           />
         ))}
       </div>

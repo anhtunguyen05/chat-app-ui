@@ -4,32 +4,40 @@ import { ChatState } from "@/features/chat/chatType";
 
 export const initialState: ChatState = {
   selectedUser: null,
-  activeTab: "chats",
+  activeTab: "all",
   messages: [],
+  chats: [],
 };
 
 const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
+    setChatsRequest(state,  action: PayloadAction<void>) {},
+    setChats(state, action: PayloadAction<User[]>) {
+      state.chats = action.payload;
+    },
     setSelectedUserRequest(state, action: PayloadAction<User | null>) {},
     setSelectedUser(state, action: PayloadAction<User | null>) {
       state.selectedUser = action.payload;
     },
-    setActiveTab(state, action: PayloadAction<"chats">) {
+    setActiveTabRequest(state, action: PayloadAction<string>) {},
+    setActiveTab(state, action: PayloadAction<string>) {
       state.activeTab = action.payload;
     },
-
+    fetchMessagesRequest(state, action: PayloadAction<string>) {},
     setMessages(state, action: PayloadAction<Object[]>) {
       state.messages = action.payload;
     },
-    fetchMessagesRequest(state, action: PayloadAction<string>) {},
   },
 });
 
 export const {
+  setChatsRequest,
+  setChats,
   setSelectedUserRequest,
   setSelectedUser,
+  setActiveTabRequest,
   setActiveTab,
   setMessages,
   fetchMessagesRequest,
