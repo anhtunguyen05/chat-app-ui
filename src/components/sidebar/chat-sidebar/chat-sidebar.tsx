@@ -11,7 +11,6 @@ import {
   setSelectedUserRequest,
   setActiveTabRequest,
 } from "@/features/chat/chatSlice";
-import { getFriendList } from "@/services/friendService";
 
 export default function ChatSidebar() {
   const dispatch = useAppDispatch();

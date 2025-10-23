@@ -1,14 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { socket } from "@/lib/socket";
+import { useAppSelector } from "@/hooks/useAppSelector";
 import { Icon } from "@/components/icon/icon";
+import { sendMessage } from "@/services/chatService";
+import { send } from "process";
 
 export default function InputChat() {
   const [message, setMessage] = useState("");
+  const currentUser = useAppSelector((state) => state.user.user);
+  const selectedUser = useAppSelector((state) => state.chat.selectedUser);
 
   const handleSend = () => {
-    if (!message.trim()) return;
-    console.log("Send:", message);
+    if (!message.trim() || !selectedUser || !currentUser) return;
+
+    sendMessage(currentUser.id, selectedUser.id, message.trim());
+
     setMessage("");
   };
   return (

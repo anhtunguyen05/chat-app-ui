@@ -1,10 +1,15 @@
-'use client';
+"use client";
 
 import React from "react";
 import Image from "next/image";
+import { socket } from "@/lib/socket";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { fetchMessagesRequest } from "@/features/chat/chatSlice";
+import {
+  fetchMessagesRequest,
+  addMessage,
+  addMessageRequest,
+} from "@/features/chat/chatSlice";
 
 export default function Info() {
   const dispatch = useAppDispatch();
@@ -19,7 +24,7 @@ export default function Info() {
   }, [dispatch, selectedUser]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-transparent">
+    <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-3 bg-transparent">
       {chatMessages.length === 0 && (
         <div className="text-center text-gray-400 text-sm mt-4">
           Chưa có tin nhắn nào

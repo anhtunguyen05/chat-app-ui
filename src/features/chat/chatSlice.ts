@@ -29,6 +29,10 @@ const chatSlice = createSlice({
     setMessages(state, action: PayloadAction<Object[]>) {
       state.messages = action.payload;
     },
+    addMessageRequest(state, action: PayloadAction<Object>) {},
+    addMessage: (state, action: PayloadAction<Object>) => {
+      state.messages.push(action.payload);
+    },
   },
 });
 
@@ -41,6 +45,8 @@ export const {
   setActiveTab,
   setMessages,
   fetchMessagesRequest,
+  addMessageRequest,
+  addMessage,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

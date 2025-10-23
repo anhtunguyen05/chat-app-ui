@@ -10,6 +10,8 @@ import {
   setActiveTab,
   setMessages,
   fetchMessagesRequest,
+  addMessageRequest,
+  addMessage,
 } from "./chatSlice";
 import { User } from "@/types/user";
 import { ChatState } from "@/features/chat/chatType";
@@ -53,9 +55,19 @@ function* handleFetchMessages(action: PayloadAction<string>) {
   }
 }
 
+
+function* handleAddMessage(action: PayloadAction<Object>) {
+  try {
+    yield put(addMessage(action.payload));
+  } catch (error: any) {
+    console.error("Failed to add message:", error.message || error);
+  } 
+}
+
 export default function* chatSaga() {
   yield takeLatest(setChatsRequest.type, handleSetChatsRequest);
   yield takeLatest(setSelectedUserRequest.type, handleSetSelectedUser);
   yield takeLatest(setActiveTabRequest.type, handleSetActiveTab);
   yield takeLatest(fetchMessagesRequest.type, handleFetchMessages);
+  yield takeLatest(addMessageRequest.type, handleAddMessage);
 }
