@@ -2,8 +2,11 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Effect } from "redux-saga/effects";
 import {
-  setSelectedUser,
+  setChatsRequest,
+  setChats,
   setSelectedUserRequest,
+  setSelectedUser,
+  setActiveTabRequest,
   setActiveTab,
   setMessages,
   fetchMessagesRequest,
@@ -11,6 +14,19 @@ import {
 import { User } from "@/types/user";
 import { ChatState } from "@/features/chat/chatType";
 import { getConversation } from "@/services/chatService";
+import { getFriendList } from "@/services/friendService";
+
+
+function* handleSetChatsRequest(action: PayloadAction<void>) {
+  try {
+    const friends: User[] = yield call(getFriendList);
+    yield put(setChats(friends));
+  }
+  catch (error: any) {
+    console.error("Failed to set chats:", error.message || error);
+  } 
+}
+
 
 function* handleSetSelectedUser(action: PayloadAction<User | null>) {
   try {
@@ -20,7 +36,7 @@ function* handleSetSelectedUser(action: PayloadAction<User | null>) {
   }
 }
 
-function* handleSetActiveTab(action: PayloadAction<"chats">) {
+function* handleSetActiveTab(action: PayloadAction<string>) {
   try {
     yield put(setActiveTab(action.payload));
   } catch (error: any) {
@@ -38,7 +54,8 @@ function* handleFetchMessages(action: PayloadAction<string>) {
 }
 
 export default function* chatSaga() {
+  yield takeLatest(setChatsRequest.type, handleSetChatsRequest);
   yield takeLatest(setSelectedUserRequest.type, handleSetSelectedUser);
-  yield takeLatest(setActiveTab.type, handleSetActiveTab);
+  yield takeLatest(setActiveTabRequest.type, handleSetActiveTab);
   yield takeLatest(fetchMessagesRequest.type, handleFetchMessages);
 }
