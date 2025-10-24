@@ -26,3 +26,11 @@ export function sendMessage(
   console.log("📤 Sending message:", message);
   socket.emit("sendMessage", message);
 }
+
+export function typing(senderId: string, receiverId: string): void {
+  socket.emit("typing", { senderId, receiverId });
+}
+
+export function stopTyping(senderId: string, receiverId: string): void {
+  socket.emit("stopTyping", { senderId, receiverId });
+}
