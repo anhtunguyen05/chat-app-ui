@@ -1,12 +1,14 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/types/user";
 import { ChatState } from "@/features/chat/chatType";
+import { set } from "zod";
 
 export const initialState: ChatState = {
   selectedUser: null,
   activeTab: "all",
   messages: [],
   chats: [],
+  onlineList: [],
 };
 
 const chatSlice = createSlice({
@@ -33,6 +35,10 @@ const chatSlice = createSlice({
     addMessage: (state, action: PayloadAction<Object>) => {
       state.messages.push(action.payload);
     },
+    setOnlineListRequest(state, action: PayloadAction<string[]>) {},
+    setOnlineList(state, action: PayloadAction<string[]>) {
+      state.onlineList = action.payload;
+    }
   },
 });
 
@@ -47,6 +53,8 @@ export const {
   fetchMessagesRequest,
   addMessageRequest,
   addMessage,
+  setOnlineListRequest,
+  setOnlineList,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

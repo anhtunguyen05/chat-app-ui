@@ -4,5 +4,6 @@ export interface User {
   nickname: string;
   avatarUrl: string;
   coverUrl: string;
+  lastSeen: string | null;
   slug: string
 }

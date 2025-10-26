@@ -17,9 +17,7 @@ export default function Chat() {
     <div className="flex-1 bg-neutral-100 p-4 overscroll-none">
       <div className="flex flex-col w-full h-full bg-white rounded-2xl overscroll-none">
         <HeaderChat
-          name={selectedUser.nickname}
-          status="onl"
-          avatarUrl={selectedUser.avatarUrl}
+         selectedUser={selectedUser}
         />
         <Info />
         <InputChat />

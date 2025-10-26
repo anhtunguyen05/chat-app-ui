@@ -5,4 +5,5 @@ export interface ChatState {
     activeTab: string;
     messages: Object[];
     chats: User[];
+    onlineList: string[];
 }

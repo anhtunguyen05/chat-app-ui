@@ -3,7 +3,10 @@ import { useEffect } from "react";
 import { socket } from "@/lib/socket";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { addMessageRequest } from "@/features/chat/chatSlice";
+import {
+  addMessageRequest,
+  setOnlineListRequest,
+} from "@/features/chat/chatSlice";
 
 export default function SocketProvider() {
   const dispatch = useAppDispatch();
@@ -12,6 +15,7 @@ export default function SocketProvider() {
   useEffect(() => {
     if (user?.id) {
       socket.emit("join", { userId: user.id });
+      socket.emit("userOnline", user?.id);
       console.log("✅ Joined room:", user.id);
     }
 
@@ -27,10 +31,17 @@ export default function SocketProvider() {
       dispatch(addMessageRequest(message));
     });
 
+    socket.on("onlineList", (list: string[]) => {
+      console.log("📡 onlineList:", list);
+      dispatch(setOnlineListRequest(list));
+    });
+
     // Cleanup khi unmount
     return () => {
       socket.off("receiveMessage");
       socket.off("messageSent");
+      socket.off("userStatus");
+      socket.off("onlineList");
     };
   }, [user, dispatch]);
 
