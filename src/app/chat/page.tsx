@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { socket } from "@/lib/socket";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import Header from "@/components/header/header";
 import Sidebar from "@/components/sidebar/sidebar";

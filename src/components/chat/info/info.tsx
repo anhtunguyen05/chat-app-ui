@@ -53,6 +53,12 @@ export default function Info() {
     };
   }, [selectedUser]);
 
+  const isOnlyEmoji = (text: any) => {
+    return /^[\p{Emoji}\p{Emoji_Presentation}\p{Extended_Pictographic}]+$/u.test(
+      text
+    );
+  };
+
   return (
     <div
       className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-3 bg-transparent"
@@ -85,7 +91,11 @@ export default function Info() {
                   : "px-3 py-2 text-black rounded-bl-none"
               }`}
             >
-              {msg.text}
+              {isOnlyEmoji(msg.text) ? (
+                <span className="text-3xl">{msg.text}</span>
+              ) : (
+                msg.text
+              )}
             </div>
           </div>
         );

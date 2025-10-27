@@ -16,21 +16,17 @@ import {
   setOnlineList,
 } from "./chatSlice";
 import { User } from "@/types/user";
-import { ChatState } from "@/features/chat/chatType";
 import { getConversation } from "@/services/chatService";
 import { getFriendList } from "@/services/friendService";
-
 
 function* handleSetChatsRequest(action: PayloadAction<void>) {
   try {
     const friends: User[] = yield call(getFriendList);
     yield put(setChats(friends));
-  }
-  catch (error: any) {
+  } catch (error: any) {
     console.error("Failed to set chats:", error.message || error);
-  } 
+  }
 }
-
 
 function* handleSetSelectedUser(action: PayloadAction<User | null>) {
   try {
@@ -62,7 +58,7 @@ function* handleAddMessage(action: PayloadAction<Object>) {
     yield put(addMessage(action.payload));
   } catch (error: any) {
     console.error("Failed to add message:", error.message || error);
-  } 
+  }
 }
 
 function* handleSetOnlineList(action: PayloadAction<string[]>) {
@@ -70,9 +66,8 @@ function* handleSetOnlineList(action: PayloadAction<string[]>) {
     yield put(setOnlineList(action.payload));
   } catch (error: any) {
     console.error("Failed to set online list:", error.message || error);
-  } 
+  }
 }
-
 
 export default function* chatSaga() {
   yield takeLatest(setChatsRequest.type, handleSetChatsRequest);

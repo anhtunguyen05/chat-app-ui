@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
-import { Phone, Video, Info } from "lucide-react";
-import { socket } from "@/lib/socket";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { Icon } from "@/components/icon/icon";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import { User } from "@/types/user";
-import { is } from "zod/v4/locales";
 
 interface HeaderChatProps {
   selectedUser: User;

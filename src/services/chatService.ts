@@ -16,12 +16,14 @@ export async function getConversation(userId: string): Promise<Object[]> {
 export function sendMessage(
   senderId: string,
   receiverId: string,
-  text: string
+  text: string, 
+  type: string = "text"
 ): void {
   const message = {
     senderId: senderId,
     receiverId: receiverId,
     text: text,
+    type: type,
   };
   console.log("📤 Sending message:", message);
   socket.emit("sendMessage", message);
