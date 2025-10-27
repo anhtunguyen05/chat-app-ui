@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { socket } from "@/lib/socket";
+import EmojiPicker from "emoji-picker-react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { Icon } from "@/components/icon/icon";
 import { sendMessage, typing, stopTyping } from "@/services/chatService";
@@ -9,6 +9,7 @@ import { send } from "process";
 
 export default function InputChat() {
   const [message, setMessage] = useState("");
+  const [showPicker, setShowPicker] = useState(false);
   const currentUser = useAppSelector((state) => state.user.user);
   const selectedUser = useAppSelector((state) => state.chat.selectedUser);
   const typingTimeoutRef = useRef<any>(null);
@@ -31,8 +32,12 @@ export default function InputChat() {
     sendMessage(currentUser.id, selectedUser.id, message.trim());
 
     setMessage("");
-    
+
     stopTyping(currentUser.id, selectedUser.id);
+  };
+
+  const onEmojiClick = (emojiData: any) => {
+    setMessage((prev) => prev + emojiData.emoji);
   };
   return (
     <div className="flex items-center gap-2 px-3 py-2 bg-transparent dark:bg-neutral-900 border-t dark:border-neutral-800">
@@ -59,7 +64,7 @@ export default function InputChat() {
       </div>
 
       {/* INPUT */}
-      <div className="flex items-center flex-1 bg-gray-100 dark:bg-neutral-800 rounded-full ">
+      <div className="flex items-center flex-1 bg-gray-100 dark:bg-neutral-800 rounded-full relative">
         <input
           type="text"
           placeholder="Aa"
@@ -67,11 +72,22 @@ export default function InputChat() {
           onChange={handleChange}
           className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500 pl-4"
         />
-        <Icon
-          name="smile"
-          className="w-5 h-5 text-violet-600"
-          buttonClassName="bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-80 w-10 h-10"
-        />
+
+        {/* Bọc icon + emoji picker vào một container riêng có relative */}
+        <div className="relative">
+          <Icon
+            name="smile"
+            className="w-5 h-5 text-violet-600"
+            buttonClassName="bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800 w-10 h-10"
+            onClick={() => setShowPicker(!showPicker)}
+          />
+
+          {showPicker && (
+            <div className="absolute bottom-12 right-1 z-50">
+              <EmojiPicker onEmojiClick={onEmojiClick} />
+            </div>
+          )}
+        </div>
       </div>
 
       {message.trim() ? (
