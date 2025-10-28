@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
         pathname: "/**", // cho phép tất cả path
       },
     ],
+
+    qualities: [25, 50, 75, 100],
   },
 };
 

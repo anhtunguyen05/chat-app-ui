@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import UserAvatar from "@/components/user-avatar/user-avatar";
 
 interface ChatItemProps {
   avatarUrl: string;
@@ -31,9 +32,8 @@ export default function ChatItem({
       } `}
       onClick={onClick}
     >
-      <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-        <Image src={avatarUrl} alt={nickname} layout="fill" objectFit="cover" />
-      </div>
+      <UserAvatar src={avatarUrl} size={56}></UserAvatar>
+
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center">
           <p className="font-medium truncate">{nickname}</p>
