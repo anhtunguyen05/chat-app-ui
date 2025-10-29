@@ -1,5 +1,8 @@
 "use client";
 
+
+import { twMerge } from "tailwind-merge";
+import clsx from "clsx";
 import {
   House,
   Bell,
@@ -79,9 +82,13 @@ export function Icon({
 
   return (
     <div
-      className={`flex items-center justify-center
-                  rounded-full bg-gray-200 dark:bg-neutral-800 hover:bg-neutral-300
-                  transition-colors ${buttonClassName ?? "w-10 h-10"}`}
+      className={twMerge(
+        clsx(
+          "flex items-center justify-center rounded-full transition-colors",
+          "bg-gray-200 dark:bg-neutral-800 hover:bg-neutral-300",
+          buttonClassName
+        )
+      )}
     >
       <LucideIcon size={size} className={className} {...iconProps} />
     </div>

@@ -13,16 +13,31 @@ export async function getConversation(userId: string): Promise<Object[]> {
   return res.data;
 }
 
+export async function uploadImages(images: File[]): Promise<string[]> {
+  const formData = new FormData();
+  images.forEach((image) => {
+    formData.append("images", image);
+  });
+  const res = await api.post<string[]>("/chats/upload-images", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return res.data;
+}
+
 export function sendMessage(
   senderId: string,
   receiverId: string,
-  text: string, 
+  text: string,
+  imageUrls: string[],
   type: string = "text"
 ): void {
   const message = {
     senderId: senderId,
     receiverId: receiverId,
     text: text,
+    imageUrls: imageUrls,
     type: type,
   };
   console.log("📤 Sending message:", message);

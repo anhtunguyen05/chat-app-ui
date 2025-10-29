@@ -5,8 +5,13 @@ import Image from "next/image";
 import EmojiPicker from "emoji-picker-react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { Icon } from "@/components/icon/icon";
-import { sendMessage, typing, stopTyping } from "@/services/chatService";
-import { send } from "process";
+import {
+  sendMessage,
+  typing,
+  stopTyping,
+  uploadImages,
+} from "@/services/chatService";
+import { ca } from "zod/v4/locales";
 
 export default function InputChat() {
   const [message, setMessage] = useState("");
@@ -41,13 +46,32 @@ export default function InputChat() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSend = () => {
-    if (!message.trim() || !selectedUser || !currentUser) return;
+  const handleSend = async () => {
+    if ( !selectedUser || !currentUser) return;
+    if(!message.trim() && images.length === 0) return;
 
-    sendMessage(currentUser.id, selectedUser.id, message.trim());
+    let imageUrls: string[] = [];
+
+    if (images.length > 0) {
+      try {
+        console.log("Uploading images:", images);
+        imageUrls = await uploadImages(images);
+      } catch (error) {
+        console.error("Error uploading images:", error);
+      }
+    }
+
+    sendMessage(
+      currentUser.id,
+      selectedUser.id,
+      message.trim(),
+      imageUrls,
+      images.length && message ? "mixed" : images.length ? "image" : "text"
+    );
 
     setMessage("");
-
+    setImages([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
     stopTyping(currentUser.id, selectedUser.id);
   };
 
@@ -122,8 +146,8 @@ export default function InputChat() {
             <label htmlFor="image-upload" className="cursor-pointer">
               <Icon
                 name="image"
-                className="w-7 h-7 text-black-600"
-                buttonClassName="bg-gray-300 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-80 w-12 h-12"
+                className="w-7 h-7 text-black-500"
+                buttonClassName="bg-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-neutral-80 w-12 h-12"
               />
             </label>
             {images.map((file, index) => (
