@@ -72,6 +72,8 @@ export default function Info() {
 
       {chatMessages.map((msg: any) => {
         const isMine = msg.sender?.id === currentUserId;
+        const hasText = msg.text && msg.text.trim() !== "";
+        const hasImages = msg.imageUrls && msg.imageUrls.length > 0;
 
         return (
           <div
@@ -83,18 +85,49 @@ export default function Info() {
             {/* Avatar của người khác */}
             {!isMine && <UserAvatar src={avatarUrl} size={28} />}
 
-            {/* Bubble tin nhắn */}
+            {/* Bọc toàn bộ tin nhắn (ảnh + text) vào 1 bubble */}
             <div
-              className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm break-words ${
+              className={`max-w-[70%] rounded-2xl overflow-hidden ${
                 isMine
                   ? "bg-violet-600 text-white rounded-br-none"
-                  : "px-3 py-2 text-black rounded-bl-none"
+                  : "bg-gray-200 text-black rounded-bl-none"
               }`}
             >
-              {isOnlyEmoji(msg.text) ? (
-                <span className="text-3xl">{msg.text}</span>
-              ) : (
-                msg.text
+              {/* ẢNH */}
+              {hasImages && (
+                <div
+                  className={`grid gap-1 ${
+                    msg.imageUrls.length === 1
+                      ? "grid-cols-1"
+                      : msg.imageUrls.length === 2
+                      ? "grid-cols-2"
+                      : "grid-cols-2"
+                  }`}
+                >
+                  {msg.imageUrls.map((img: string, idx: number) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt=""
+                      className="w-full max-h-56 object-cover"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* TEXT */}
+              {hasText && (
+                <div
+                  className={`px-3 py-2 ${
+                    hasImages ? "border-t border-white/20" : ""
+                  }`}
+                >
+                  {isOnlyEmoji(msg.text) ? (
+                    <span className="text-3xl">{msg.text}</span>
+                  ) : (
+                    <span>{msg.text}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>
