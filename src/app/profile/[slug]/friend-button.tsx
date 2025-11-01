@@ -16,27 +16,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RelationshipStatus } from "@/types/friend";
 
 interface FriendButtonProps {
   userId: string;
-  relationship: "none" | "pending_sent" | "pending_received" | "friends";
-  onChange: (newStatus: "none" | "pending_sent" | "pending_received" | "friends") => void;
+  relationship: RelationshipStatus;
+  onChange: (newStatus: RelationshipStatus) => void;
 }
 
-
 export default function FriendButton({
-   userId,
+  userId,
   relationship,
   onChange,
 }: FriendButtonProps) {
- 
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
     try {
       setLoading(true);
 
-       let newStatus = relationship;
+      let newStatus = relationship;
 
       switch (relationship) {
         case "none":
@@ -55,7 +54,7 @@ export default function FriendButton({
           break;
       }
 
-       onChange(newStatus);
+      onChange(newStatus);
     } catch (err) {
       console.error("Friend action error:", err);
     } finally {
@@ -72,7 +71,6 @@ export default function FriendButton({
     await rejectFriendRequest(userId);
     onChange("none");
   };
-
 
   if (relationship === "pending_received") {
     return (
