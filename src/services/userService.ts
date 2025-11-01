@@ -1,5 +1,6 @@
 import api from "@/lib/axios";
 import { User } from "@/types/user";
+import { RelationshipStatus } from "@/types/friend";
 
 export interface UpdateImageData {
   file: File;
@@ -16,7 +17,7 @@ export interface UpdateResponse {
 
 export interface GetUserResponse {
   user: User;
-  relationship: string;
+  relationship: RelationshipStatus;
 }
 
 export async function updateAvatar(

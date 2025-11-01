@@ -127,13 +127,13 @@ export default function InputChat() {
 
       {/* INPUT ZONE */}
       <div
-        className={`flex flex-col flex-1 bg-gray-100 dark:bg-neutral-800 rounded-2xl px-3 py-2 transition-all duration-200 ${
-          images.length > 0 ? "max-h-60" : "h-12"
+        className={`flex flex-col flex-1 bg-gray-100 dark:bg-neutral-800 rounded-2xl transition-all duration-200 ${
+          images.length > 0 ? "max-h-60" : ""
         }`}
       >
         {/* PREVIEW IMAGES */}
         {images.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2 overflow-y-auto max-h-32">
+          <div className="flex flex-wrap gap-2 mb-2 overflow-y-auto max-h-32 pl-4 pt-2">
             <input
               ref={fileInputRef}
               id="image-upload"
@@ -169,13 +169,13 @@ export default function InputChat() {
         )}
 
         {/* TEXT + EMOJI */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           <input
             type="text"
             placeholder="Aa"
             value={message}
             onChange={handleChange}
-            className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500"
+            className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-500 pl-4"
           />
           <div className="relative">
             <Icon

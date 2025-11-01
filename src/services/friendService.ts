@@ -19,6 +19,16 @@ export async function getFriendList(): Promise<User[]> {
   return res.data.data;
 }
 
+export async function getNoneFriendList(): Promise<User[]> {
+  const res = await api.get<FriendResponse>("/friends/none-friend");
+  return res.data.data;
+}
+
+export async function getFriendRequestList(): Promise<User[]> {
+  const res = await api.get<FriendResponse>("/friends/request");
+  return res.data.data;
+}
+
 export async function sendFriendRequest(toId: string): Promise<FriendActionResponse> {
   const res = await api.post<FriendActionResponse>(`/friends/request/${toId}`);
   return res.data;
