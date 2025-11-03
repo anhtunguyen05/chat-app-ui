@@ -7,9 +7,15 @@ export async function fetchChatHistory(withUserId: string): Promise<string[]> {
   return res.data;
 }
 
-export async function getConversation(userId: string): Promise<Object[]> {
+export async function getConversation(
+  userId: string,
+  page = 1,
+  limit = 20
+): Promise<Object[]> {
   console.log("Fetching conversation for userId:", userId);
-  const res = await api.get<Object[]>(`/chats/conversation/${userId}`);
+  const res = await api.get<Object[]>(`/chats/conversation/${userId}`, {
+    params: { page, limit },
+  });
   return res.data;
 }
 

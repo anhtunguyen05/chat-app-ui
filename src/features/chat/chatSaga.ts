@@ -12,8 +12,10 @@ import {
   fetchMessagesRequest,
   addMessageRequest,
   addMessage,
+  appendMessages,
   setOnlineListRequest,
   setOnlineList,
+  setHasMore,
 } from "./chatSlice";
 import { User } from "@/types/user";
 import { getConversation } from "@/services/chatService";
@@ -44,10 +46,22 @@ function* handleSetActiveTab(action: PayloadAction<string>) {
   }
 }
 
-function* handleFetchMessages(action: PayloadAction<string>) {
+function* handleFetchMessages(
+  action: PayloadAction<{ userId: string; page?: number }>
+) {
   try {
-    const messages: Object[] = yield call(getConversation, action.payload);
-    yield put(setMessages(messages));
+    const { userId, page = 1 } = action.payload;
+    const messages: Object[] = yield call(getConversation, userId, page, 20);
+
+    if (page === 1) {
+      yield put(setMessages(messages));
+    } else {
+      yield put(appendMessages(messages));
+    }
+
+    if (messages.length < 20) {
+      yield put(setHasMore(false)); // Hết tin nhắn
+    }
   } catch (error: any) {
     console.error("Failed to fetch messages:", error.message || error);
   }
