@@ -4,6 +4,8 @@ export interface ChatState {
     selectedUser: User | null;
     activeTab: string;
     messages: Object[];
+    page: number;
+    hasMore: boolean;
     chats: User[];
     onlineList: string[];
 }

@@ -3,24 +3,21 @@
 import React from "react";
 import Image from "next/image";
 import { socket } from "@/lib/socket";
+import { isOnlyEmoji } from "@/lib/utils";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import {
-  fetchMessagesRequest,
-  addMessage,
-  addMessageRequest,
-} from "@/features/chat/chatSlice";
+import { fetchMessagesRequest } from "@/features/chat/chatSlice";
 import UserAvatar from "@/components/user-avatar/user-avatar";
+import ChatScrollHandler from "@/components/chat/chat-scroll-handler/chat-scroll-handler";
 
 export default function Info() {
   const dispatch = useAppDispatch();
   const currentUserId = useAppSelector((state) => state.user.user?.id);
-  const selectedUser = useAppSelector((state) => state.chat.selectedUser);
+  const { selectedUser, hasMore, page } = useAppSelector((state) => state.chat);
   const chatMessages = useAppSelector((state) => state.chat.messages) || [];
 
   const [isTyping, setIsTyping] = React.useState(false);
 
-  const messagesEndRef = React.useRef<HTMLDivElement | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const avatarUrl = selectedUser?.avatarUrl || undefined;
@@ -28,15 +25,9 @@ export default function Info() {
 
   React.useEffect(() => {
     if (selectedUser?.id) {
-      dispatch(fetchMessagesRequest(selectedUser.id));
+      dispatch(fetchMessagesRequest({ userId: selectedUser.id, page: 1 }));
     }
   }, [dispatch, selectedUser]);
-
-  React.useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chatMessages]);
 
   React.useEffect(() => {
     socket.on("typing", ({ senderId }) => {
@@ -52,12 +43,6 @@ export default function Info() {
       socket.off("stopTyping");
     };
   }, [selectedUser]);
-
-  const isOnlyEmoji = (text: any) => {
-    return /^[\p{Emoji}\p{Emoji_Presentation}\p{Extended_Pictographic}]+$/u.test(
-      text
-    );
-  };
 
   return (
     <div
@@ -145,7 +130,13 @@ export default function Info() {
         </div>
       )}
 
-      <div ref={messagesEndRef} />
+      <ChatScrollHandler
+        containerRef={containerRef}
+        chatMessages={chatMessages}
+        selectedUser={selectedUser}
+        page={page}
+        hasMore={hasMore}
+      />
     </div>
   );
 }
