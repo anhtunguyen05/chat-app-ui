@@ -62,7 +62,7 @@ export default function Info() {
 
         return (
           <div
-            key={msg._id}
+            key={msg.id}
             className={`flex items-end gap-2 ${
               isMine ? "justify-end" : "justify-start"
             }`}
