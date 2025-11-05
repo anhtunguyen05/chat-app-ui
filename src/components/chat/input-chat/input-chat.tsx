@@ -18,20 +18,22 @@ export default function InputChat() {
   const [images, setImages] = useState<File[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const currentUser = useAppSelector((state) => state.user.user);
-  const selectedUser = useAppSelector((state) => state.chat.selectedUser);
+  const selectedConversation = useAppSelector(
+    (state) => state.chat.selectedConversation
+  );
   const typingTimeoutRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
     // Gửi "typing"
-    typing(currentUser?.id!, selectedUser?.id!);
+    // typing(currentUser?.id!, selectedUser?.id!);
 
     // Nếu sau 2s không gõ nữa → gửi "stopTyping"
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    typingTimeoutRef.current = setTimeout(() => {
-      stopTyping(currentUser?.id!, selectedUser?.id!);
-    }, 2000);
+    // if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    // typingTimeoutRef.current = setTimeout(() => {
+    //   stopTyping(currentUser?.id!, selectedUser?.id!);
+    // }, 2000);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,8 +49,8 @@ export default function InputChat() {
   };
 
   const handleSend = async () => {
-    if ( !selectedUser || !currentUser) return;
-    if(!message.trim() && images.length === 0) return;
+    if (!selectedConversation || !currentUser) return;
+    if (!message.trim() && images.length === 0) return;
 
     let imageUrls: string[] = [];
 
@@ -61,18 +63,23 @@ export default function InputChat() {
       }
     }
 
+    const msgType =
+      images.length && message ? "mixed" : images.length ? "image" : "text";
+
+    // ✅ Gửi tin nhắn qua socket
     sendMessage(
+      selectedConversation.type, // "private" | "group"
       currentUser.id,
-      selectedUser.id,
+      selectedConversation.id, // nếu group thì id là groupId
       message.trim(),
       imageUrls,
-      images.length && message ? "mixed" : images.length ? "image" : "text"
+      msgType
     );
 
     setMessage("");
     setImages([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
-    stopTyping(currentUser.id, selectedUser.id);
+    // stopTyping(currentUser.id, selectedUser.id);
   };
 
   const onEmojiClick = (emojiData: any) => {

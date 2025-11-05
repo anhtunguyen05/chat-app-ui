@@ -127,7 +127,7 @@ export default function Info() {
         );
       })}
 
-      {isTyping && (
+      {/* {isTyping && (
         <div className="flex items-end gap-2 justify-start">
           <UserAvatar src={avatarUrl} size={28} />
           <div className="flex items-center px-3 py-2 bg-gray-200 rounded-2xl">
@@ -136,7 +136,7 @@ export default function Info() {
             <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
           </div>
         </div>
-      )}
+      )} */}
 
       <ChatScrollHandler
         containerRef={containerRef}

@@ -7,6 +7,7 @@ import {
   addMessageRequest,
   setOnlineListRequest,
 } from "@/features/chat/chatSlice";
+import { getUserGroups } from "@/services/groupService";
 
 export default function SocketProvider() {
   const dispatch = useAppDispatch();
@@ -18,6 +19,23 @@ export default function SocketProvider() {
       socket.emit("userOnline", user?.id);
       console.log("✅ Joined room:", user.id);
     }
+
+    const joinGroups = async () => {
+    try {
+      // 🔹 Gọi API lấy danh sách group user thuộc về
+      const groups = await getUserGroups();
+      // 🔹 Join tất cả group
+      groups.forEach((group: any) => {
+        socket.emit("joinGroup", group.id);
+      });
+
+      console.log("✅ Joined groups:", groups.map((g: any) => g.id));
+    } catch (err) {
+      console.error("❌ Failed to join groups:", err);
+    }
+  };
+
+  joinGroups();
 
     // Lắng nghe tin nhắn đến
     socket.on("receiveMessage", (message) => {

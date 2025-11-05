@@ -33,21 +33,29 @@ export async function uploadImages(images: File[]): Promise<string[]> {
 }
 
 export function sendMessage(
+  type: "private" | "group",
   senderId: string,
-  receiverId: string,
+  targetId: string,
   text: string,
-  imageUrls: string[],
-  type: string = "text"
+  imageUrls: string[] = [],
+  msgType: "text" | "image" | "mixed" = "text"
 ): void {
-  const message = {
-    senderId: senderId,
-    receiverId: receiverId,
-    text: text,
-    imageUrls: imageUrls,
-    type: type,
+  const payload: any = {
+    senderId,
+    text,
+    imageUrls,
+    type: msgType,
   };
-  console.log("📤 Sending message:", message);
-  socket.emit("sendMessage", message);
+
+  if (type === "group") {
+    payload.groupId = targetId;
+    console.log("📤 Sending group message:", payload);
+    socket.emit("sendGroupMessage", payload);
+  } else {
+    payload.receiverId = targetId;
+    console.log("📤 Sending private message:", payload);
+    socket.emit("sendMessage", payload);
+  }
 }
 
 export function typing(senderId: string, receiverId: string): void {
