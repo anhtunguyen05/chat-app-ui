@@ -2,10 +2,10 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Effect } from "redux-saga/effects";
 import {
-  setChatsRequest,
-  setChats,
-  setSelectedUserRequest,
-  setSelectedUser,
+  setConversationsRequest,
+  setConversations,
+  setSelectedConversationRequest,
+  setSelectedConversation,
   setActiveTabRequest,
   setActiveTab,
   setMessages,
@@ -17,22 +17,23 @@ import {
   setOnlineList,
   setHasMore,
 } from "./chatSlice";
-import { User } from "@/types/user";
-import { getConversation } from "@/services/chatService";
-import { getFriendList } from "@/services/friendService";
+import { Conversation } from "@/features/chat/chatType";
+import { getConversation, getConversations } from "@/services/chatService";
 
-function* handleSetChatsRequest(action: PayloadAction<void>) {
+function* handleSetConversations(action: PayloadAction<void>) {
   try {
-    const friends: User[] = yield call(getFriendList);
-    yield put(setChats(friends));
+    const conversations: Object[] = yield call(getConversations);
+    yield put(setConversations(conversations));
   } catch (error: any) {
     console.error("Failed to set chats:", error.message || error);
   }
 }
 
-function* handleSetSelectedUser(action: PayloadAction<User | null>) {
+function* handleSetSelectedConversation(
+  action: PayloadAction<Conversation | null>
+) {
   try {
-    yield put(setSelectedUser(action.payload));
+    yield put(setSelectedConversation(action.payload));
   } catch (error: any) {
     console.error("Failed to set selected user:", error.message || error);
   }
@@ -47,11 +48,22 @@ function* handleSetActiveTab(action: PayloadAction<string>) {
 }
 
 function* handleFetchMessages(
-  action: PayloadAction<{ userId: string; page?: number }>
+  action: PayloadAction<{
+    type: "private" | "group";
+    targetId: string;
+    page?: number;
+  }>
 ) {
   try {
-    const { userId, page = 1 } = action.payload;
-    const messages: Object[] = yield call(getConversation, userId, page, 20);
+    const { type, targetId, page = 1 } = action.payload;
+
+    const messages: Object[] = yield call(
+      getConversation,
+      type,
+      targetId,
+      page,
+      20
+    );
 
     if (page === 1) {
       yield put(setMessages(messages));
@@ -60,7 +72,7 @@ function* handleFetchMessages(
     }
 
     if (messages.length < 20) {
-      yield put(setHasMore(false)); // Hết tin nhắn
+      yield put(setHasMore(false));
     }
   } catch (error: any) {
     console.error("Failed to fetch messages:", error.message || error);
@@ -84,8 +96,11 @@ function* handleSetOnlineList(action: PayloadAction<string[]>) {
 }
 
 export default function* chatSaga() {
-  yield takeLatest(setChatsRequest.type, handleSetChatsRequest);
-  yield takeLatest(setSelectedUserRequest.type, handleSetSelectedUser);
+  yield takeLatest(setConversationsRequest.type, handleSetConversations);
+  yield takeLatest(
+    setSelectedConversationRequest.type,
+    handleSetSelectedConversation
+  );
   yield takeLatest(setActiveTabRequest.type, handleSetActiveTab);
   yield takeLatest(fetchMessagesRequest.type, handleFetchMessages);
   yield takeLatest(addMessageRequest.type, handleAddMessage);

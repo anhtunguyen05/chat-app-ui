@@ -2,18 +2,18 @@ import api from "@/lib/axios";
 import { socket } from "@/lib/socket";
 import { User } from "@/types/user";
 
-export async function fetchChatHistory(withUserId: string): Promise<string[]> {
-  const res = await api.get<string[]>(`/chats/history/${withUserId}`);
+export async function getConversations(): Promise<Object[]> {
+  const res = await api.get<Object[]>(`/chats`);
   return res.data;
 }
 
 export async function getConversation(
-  userId: string,
+  type: "private" | "group",
+  targetId: string,
   page = 1,
   limit = 20
 ): Promise<Object[]> {
-  console.log("Fetching conversation for userId:", userId);
-  const res = await api.get<Object[]>(`/chats/conversation/${userId}`, {
+  const res = await api.get(`/chats/${type}/${targetId}`, {
     params: { page, limit },
   });
   return res.data;

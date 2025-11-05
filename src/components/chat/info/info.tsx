@@ -13,36 +13,44 @@ import ChatScrollHandler from "@/components/chat/chat-scroll-handler/chat-scroll
 export default function Info() {
   const dispatch = useAppDispatch();
   const currentUserId = useAppSelector((state) => state.user.user?.id);
-  const { selectedUser, hasMore, page } = useAppSelector((state) => state.chat);
+  const { selectedConversation, hasMore, page } = useAppSelector(
+    (state) => state.chat
+  );
   const chatMessages = useAppSelector((state) => state.chat.messages) || [];
 
   const [isTyping, setIsTyping] = React.useState(false);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const avatarUrl = selectedUser?.avatarUrl || undefined;
-  const nickname = selectedUser?.nickname || "Người dùng";
+  const avatarUrl = selectedConversation?.target.avatarUrl || undefined;
+  const nickname = selectedConversation?.target.nickname || "Người dùng";
 
   React.useEffect(() => {
-    if (selectedUser?.id) {
-      dispatch(fetchMessagesRequest({ userId: selectedUser.id, page: 1 }));
+    if (selectedConversation?.id) {
+      dispatch(
+        fetchMessagesRequest({
+          type: selectedConversation.type,
+          targetId: selectedConversation.id,
+          page: 1,
+        })
+      );
     }
-  }, [dispatch, selectedUser]);
+  }, [dispatch, selectedConversation]);
 
-  React.useEffect(() => {
-    socket.on("typing", ({ senderId }) => {
-      if (senderId === selectedUser?.id) setIsTyping(true);
-    });
+  // React.useEffect(() => {
+  //   socket.on("typing", ({ senderId }) => {
+  //     if (senderId === selectedUser?.id) setIsTyping(true);
+  //   });
 
-    socket.on("stopTyping", ({ senderId }) => {
-      if (senderId === selectedUser?.id) setIsTyping(false);
-    });
+  //   socket.on("stopTyping", ({ senderId }) => {
+  //     if (senderId === selectedUser?.id) setIsTyping(false);
+  //   });
 
-    return () => {
-      socket.off("typing");
-      socket.off("stopTyping");
-    };
-  }, [selectedUser]);
+  //   return () => {
+  //     socket.off("typing");
+  //     socket.off("stopTyping");
+  //   };
+  // }, [selectedUser]);
 
   return (
     <div
@@ -133,7 +141,7 @@ export default function Info() {
       <ChatScrollHandler
         containerRef={containerRef}
         chatMessages={chatMessages}
-        selectedUser={selectedUser}
+        selectedConversation={selectedConversation}
         page={page}
         hasMore={hasMore}
       />
