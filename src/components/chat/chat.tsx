@@ -7,9 +7,9 @@ import NoChat from "@/components/chat/no-chat";
 import { useAppSelector } from "@/hooks/useAppSelector";
 
 export default function Chat() {
-  const selectedUser = useAppSelector((state) => state.chat.selectedUser);
+  const selectedConversation = useAppSelector((state) => state.chat.selectedConversation);
 
-  if (!selectedUser) {
+  if (!selectedConversation) {
     return <NoChat />;
   }
 
@@ -17,7 +17,7 @@ export default function Chat() {
     <div className="flex-1 bg-neutral-100 p-4 overscroll-none">
       <div className="flex flex-col w-full h-full bg-white rounded-2xl overscroll-none">
         <HeaderChat
-         selectedUser={selectedUser}
+         selectedConversation={selectedConversation}
         />
         <Info />
         <InputChat />

@@ -2,11 +2,12 @@ import React from "react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useThrottle } from "@/hooks/useThrottle";
 import { fetchMessagesRequest } from "@/features/chat/chatSlice";
+import { Conversation } from "@/features/chat/chatType";
 
 interface ChatScrollHandlerProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
   chatMessages: any[];
-  selectedUser: { id: string } | null;
+  selectedConversation: Conversation | null;
   page: number;
   hasMore: boolean;
 }
@@ -14,7 +15,7 @@ interface ChatScrollHandlerProps {
 export default function ChatScrollHandler({
   containerRef,
   chatMessages,
-  selectedUser,
+  selectedConversation,
   page,
   hasMore,
 }: ChatScrollHandlerProps) {
@@ -45,12 +46,16 @@ export default function ChatScrollHandler({
 
   const handleScroll = useThrottle(() => {
     const container = containerRef.current;
-    if (!container || !hasMore || !selectedUser) return;
+    if (!container || !hasMore || !selectedConversation) return;
 
     if (container.scrollTop <= 50) {
       prevScrollHeight.current = container.scrollHeight;
       dispatch(
-        fetchMessagesRequest({ userId: selectedUser.id, page: page + 1 })
+        fetchMessagesRequest({
+          type: selectedConversation.type,
+          targetId: selectedConversation.id,
+          page: page + 1,
+        })
       );
     }
   }, 300);
@@ -73,7 +78,7 @@ export default function ChatScrollHandler({
     waitForImages(container).then(() => {
       container.scrollTop = container.scrollHeight;
     });
-  }, [selectedUser?.id]);
+  }, [selectedConversation?.id]);
 
   React.useEffect(() => {
     const container = containerRef.current;

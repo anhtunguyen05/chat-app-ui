@@ -7,21 +7,23 @@ import { User } from "@/types/user";
 import ChatItem from "@/components/sidebar/chat-sidebar/chat-item/chat-item";
 import MessageItem from "@/components/message-item/message-item";
 import {
-  setChatsRequest,
-  setSelectedUserRequest,
+  setConversationsRequest,
+  setSelectedConversationRequest,
   setActiveTabRequest,
 } from "@/features/chat/chatSlice";
+import { formatConversationForUI } from "@/utils/formatter";
 
 export default function ChatSidebar() {
   const dispatch = useAppDispatch();
-  const selectedUser = useAppSelector((state) => state.chat.selectedUser);
-  const activeTab = useAppSelector((state) => state.chat.activeTab);
-  const chats = useAppSelector((state) => state.chat.chats);
+  const { selectedConversation, activeTab, conversations } = useAppSelector(
+    (state) => state.chat
+  );
+  const { user } = useAppSelector((state) => state.user);
 
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    dispatch(setChatsRequest());
+    dispatch(setConversationsRequest());
     setLoading(false);
   }, []);
 
@@ -50,17 +52,27 @@ export default function ChatSidebar() {
         </MessageItem>
       </div>
       <div className="overflow-y-auto">
-        {chats.map((chat) => (
-          <ChatItem
-            key={chat.id}
-            avatarUrl={chat.avatarUrl}
-            nickname={chat.nickname}
-            onClick={() => {
-              dispatch(setSelectedUserRequest(chat));
-            }}
-            active={selectedUser?.id === chat.id}
-          />
-        ))}
+        {conversations.map((conversation: any) => {
+          const formatted = formatConversationForUI(conversation);
+
+          return (
+            <ChatItem
+              key={formatted.id}
+              avatarUrl={formatted.avatarUrl}
+              nickname={formatted.nickname}
+              message={formatted.message}
+              time={formatted.time}
+              unread={false}
+              active={selectedConversation?.id === formatted.id}
+              lastSenderName={formatted.message?.sender?.nickname}
+              isCurrentUserSender={formatted.message?.sender === user?.id}
+              onClick={() => {
+                console.log(formatted.raw);
+                dispatch(setSelectedConversationRequest(formatted.raw));
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );
