@@ -53,3 +53,4 @@ export async function getUser(slug: string): Promise<GetUserResponse> {
   const res = await api.get<GetUserResponse>(`/users/${slug}`); // không cần id, server sẽ dựa vào token
   return res.data;
 }
+
