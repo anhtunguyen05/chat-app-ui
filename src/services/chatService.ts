@@ -58,10 +58,26 @@ export function sendMessage(
   }
 }
 
-export function typing(senderId: string, receiverId: string): void {
-  socket.emit("typing", { senderId, receiverId });
+export function typing(
+  senderId: string,
+  targetId: string,
+  isGroup: boolean = false
+) {
+  socket.emit("typing", {
+    senderId,
+    receiverId: isGroup ? null : targetId,
+    groupId: isGroup ? targetId : null,
+  });
 }
 
-export function stopTyping(senderId: string, receiverId: string): void {
-  socket.emit("stopTyping", { senderId, receiverId });
+export function stopTyping(
+  senderId: string,
+  targetId: string,
+  isGroup: boolean = false
+) {
+  socket.emit("stopTyping", {
+    senderId,
+    receiverId: isGroup ? null : targetId,
+    groupId: isGroup ? targetId : null,
+  });
 }
