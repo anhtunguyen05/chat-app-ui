@@ -27,13 +27,17 @@ export default function InputChat() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
     // Gửi "typing"
-    // typing(currentUser?.id!, selectedUser?.id!);
+    if (!currentUser || !selectedConversation) return;
+
+    const isGroup = selectedConversation.type === "group"; // hoặc bạn có field riêng
+
+    typing(currentUser.id, selectedConversation.id, isGroup);
 
     // Nếu sau 2s không gõ nữa → gửi "stopTyping"
-    // if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    // typingTimeoutRef.current = setTimeout(() => {
-    //   stopTyping(currentUser?.id!, selectedUser?.id!);
-    // }, 2000);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping(currentUser.id, selectedConversation.id, isGroup);
+    }, 2000);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
