@@ -4,6 +4,7 @@ import { socket } from "@/lib/socket";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import {
+  addOrUpdateConversationRequest,
   addMessageRequest,
   setOnlineListRequest,
 } from "@/features/chat/chatSlice";
@@ -21,26 +22,35 @@ export default function SocketProvider() {
     }
 
     const joinGroups = async () => {
-    try {
-      // 🔹 Gọi API lấy danh sách group user thuộc về
-      const groups = await getUserGroups();
-      // 🔹 Join tất cả group
-      groups.forEach((group: any) => {
-        socket.emit("joinGroup", group.id);
-      });
+      try {
+        // 🔹 Gọi API lấy danh sách group user thuộc về
+        const groups = await getUserGroups();
+        // 🔹 Join tất cả group
+        groups.forEach((group: any) => {
+          socket.emit("joinGroup", group.id);
+        });
 
-      console.log("✅ Joined groups:", groups.map((g: any) => g.id));
-    } catch (err) {
-      console.error("❌ Failed to join groups:", err);
-    }
-  };
+        console.log(
+          "✅ Joined groups:",
+          groups.map((g: any) => g.id)
+        );
+      } catch (err) {
+        console.error("❌ Failed to join groups:", err);
+      }
+    };
 
-  joinGroups();
+    joinGroups();
 
     // Lắng nghe tin nhắn đến
     socket.on("receiveMessage", (message) => {
       console.log("📥 Received:", message);
       dispatch(addMessageRequest(message));
+      dispatch(
+        addOrUpdateConversationRequest({
+          message,
+          currentUserId: user?.id || null,
+        })
+      );
     });
 
     // Tin nhắn gửi thành công

@@ -6,6 +6,8 @@ import {
   setConversations,
   setSelectedConversationRequest,
   setSelectedConversation,
+  addOrUpdateConversationRequest,
+  addOrUpdateConversation,
   setActiveTabRequest,
   setActiveTab,
   setMessages,
@@ -17,12 +19,12 @@ import {
   setOnlineList,
   setHasMore,
 } from "./chatSlice";
-import { Conversation } from "@/features/chat/chatType";
+import { Conversation, Message } from "@/features/chat/chatType";
 import { getConversation, getConversations } from "@/services/chatService";
 
 function* handleSetConversations(action: PayloadAction<void>) {
   try {
-    const conversations: Object[] = yield call(getConversations);
+    const conversations: Conversation[] = yield call(getConversations);
     yield put(setConversations(conversations));
   } catch (error: any) {
     console.error("Failed to set chats:", error.message || error);
@@ -37,6 +39,13 @@ function* handleSetSelectedConversation(
   } catch (error: any) {
     console.error("Failed to set selected user:", error.message || error);
   }
+}
+
+function* handleAddOrUpdateConversation(
+  action: PayloadAction<{ message: Message; currentUserId: string }>
+) {
+  const message = action.payload;
+  yield put(addOrUpdateConversation(message));
 }
 
 function* handleSetActiveTab(action: PayloadAction<string>) {
@@ -100,6 +109,10 @@ export default function* chatSaga() {
   yield takeLatest(
     setSelectedConversationRequest.type,
     handleSetSelectedConversation
+  );
+  yield takeLatest(
+    addOrUpdateConversationRequest.type,
+    handleAddOrUpdateConversation
   );
   yield takeLatest(setActiveTabRequest.type, handleSetActiveTab);
   yield takeLatest(fetchMessagesRequest.type, handleFetchMessages);

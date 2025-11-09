@@ -10,6 +10,7 @@ import {
   setConversationsRequest,
   setSelectedConversationRequest,
   setActiveTabRequest,
+  addOrUpdateConversationRequest
 } from "@/features/chat/chatSlice";
 import { formatConversationForUI } from "@/utils/formatter";
 
@@ -26,6 +27,15 @@ export default function ChatSidebar() {
     dispatch(setConversationsRequest());
     setLoading(false);
   }, []);
+
+  //  React.useEffect(() => {
+  //   if (!user) return;
+
+  //   const handleNewMessage = (message: any) => {
+  //     dispatch(addOrUpdateConversationRequest({ message, currentUserId: user.id }));
+  //   };
+
+  // }, [ user, dispatch]);
 
   if (loading) return <p>Loading friends...</p>;
 
