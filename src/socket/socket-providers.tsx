@@ -57,6 +57,12 @@ export default function SocketProvider() {
     socket.on("messageSent", (message) => {
       console.log("✅ Sent confirmed:", message);
       dispatch(addMessageRequest(message));
+      dispatch(
+        addOrUpdateConversationRequest({
+          message,
+          currentUserId: user?.id || null,
+        })
+      );
     });
 
     socket.on("onlineList", (list: string[]) => {
