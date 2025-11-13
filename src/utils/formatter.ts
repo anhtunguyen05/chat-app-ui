@@ -32,6 +32,13 @@ export function formatConversationForUI(convo: any) {
 
   const time = lastMessage?.createdAt ? timeFormat(lastMessage.createdAt) : "";
 
+  const isRead =
+    typeof convo.isRead === "boolean"
+      ? convo.isRead
+      : lastMessage
+      ? lastMessage.isRead ?? true
+      : true;
+
   return {
     id: convo.id,
     avatarUrl,
@@ -39,6 +46,7 @@ export function formatConversationForUI(convo: any) {
     message,
     time,
     isGroup,
+    isRead, 
     raw: convo, // lưu bản gốc nếu cần dùng lại
   };
 }

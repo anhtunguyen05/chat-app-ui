@@ -42,10 +42,8 @@ const chatSlice = createSlice({
       let convId: string | null | undefined;
 
       if (message.group) {
-        // 🔹 Nhóm → dùng groupId
         convId = message.group;
       } else {
-        // 🔹 Private → lấy ID của người còn lại
         convId =
           message.sender.id === currentUserId
             ? message.receiver?.id
@@ -58,11 +56,21 @@ const chatSlice = createSlice({
         (c) => c.id === convId
       );
 
+      const isFromMe = message.sender.id === currentUserId;
+
       if (existing) {
         existing.lastMessage = message;
         existing.updatedAt = message.createdAt || new Date().toISOString();
 
-        // 🔹 Đưa lên đầu danh sách
+        // ✅ Nếu mình gửi tin nhắn → xem như đoạn này đã đọc
+        if (isFromMe) {
+          existing.isRead = true;
+        } else {
+          // ✅ Nếu tin từ người khác → chưa đọc
+          existing.isRead = false;
+        }
+
+        // 🔹 Đưa lên đầu
         state.conversations = [
           existing,
           ...state.conversations.filter((c) => c.id !== convId),
@@ -79,11 +87,18 @@ const chatSlice = createSlice({
               }
             : {
                 id: convId,
-                nickname: message.sender || "Người dùng",
-                avatarUrl: message.sender || "/default-avatar.jpg",
+                nickname:
+                  message.sender.id === currentUserId
+                    ? message.receiver?.nickname || "Người dùng"
+                    : message.sender?.nickname || "Người dùng",
+                avatarUrl:
+                  message.sender.id === currentUserId
+                    ? message.receiver?.avatarUrl || "/default-avatar.jpg"
+                    : message.sender?.avatarUrl || "/default-avatar.jpg",
               },
           lastMessage: message,
           updatedAt: message.createdAt || new Date().toISOString(),
+          isRead: isFromMe, // mình gửi thì true
         };
 
         state.conversations.unshift(newConv);

@@ -5,14 +5,15 @@ export interface Conversation {
   type: "private" | "group";
   target: any; // user hoặc group
   lastMessage?: any;
+  isRead: boolean;
   createdAt?: Date;
-  updatedAt?: Date
+  updatedAt?: Date;
 }
 
-export interface User{
+export interface User {
   id: string;
   nickname: string;
-  avatarUrl: string
+  avatarUrl: string;
 }
 
 export interface Message {
@@ -23,6 +24,7 @@ export interface Message {
   text: string | null;
   imageUrls: [];
   type: string;
+  isRead?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

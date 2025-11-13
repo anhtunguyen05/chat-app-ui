@@ -28,15 +28,6 @@ export default function ChatSidebar() {
     setLoading(false);
   }, []);
 
-  //  React.useEffect(() => {
-  //   if (!user) return;
-
-  //   const handleNewMessage = (message: any) => {
-  //     dispatch(addOrUpdateConversationRequest({ message, currentUserId: user.id }));
-  //   };
-
-  // }, [ user, dispatch]);
-
   if (loading) return <p>Loading friends...</p>;
 
   return (
@@ -64,7 +55,6 @@ export default function ChatSidebar() {
       <div className="overflow-y-auto">
         {conversations.map((conversation: any) => {
           const formatted = formatConversationForUI(conversation);
-
           return (
             <ChatItem
               key={formatted.id}
@@ -72,7 +62,7 @@ export default function ChatSidebar() {
               nickname={formatted.nickname}
               message={formatted.message}
               time={formatted.time}
-              unread={false}
+              unread={!formatted.isRead}
               active={selectedConversation?.id === formatted.id}
               lastSenderName={formatted.message?.sender?.nickname}
               isCurrentUserSender={formatted.message?.sender === user?.id}

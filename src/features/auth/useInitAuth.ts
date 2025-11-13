@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import {  finishLoading } from "./authSlice";
+import { finishLoading } from "./authSlice";
 import { setUser } from "@/features/user/userSlice";
 import { getCurrentUser } from "@/services/authService";
 
