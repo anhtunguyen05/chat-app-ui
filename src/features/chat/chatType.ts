@@ -37,4 +37,5 @@ export interface ChatState {
   page: number;
   hasMore: boolean;
   onlineList: string[];
+  lastReadMessageId: string | null;
 }
