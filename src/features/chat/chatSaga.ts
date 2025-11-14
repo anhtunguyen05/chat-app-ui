@@ -53,12 +53,11 @@ function* handleAddOrUpdateConversation(
 function* handleUpdateMessageReadStatus(
   action: PayloadAction<{
     conversationId: string;
-    userId: string;
-    currentUserId: string;
+    lastReadMessageId: string;
   }>
 ) {
-  const { conversationId, userId, currentUserId } = action.payload;
-  yield put(updateMessageReadStatus({ conversationId, userId }));
+  const { conversationId, lastReadMessageId } = action.payload;
+  yield put(updateMessageReadStatus({ conversationId,  lastReadMessageId}));
 }
 
 function* handleSetActiveTab(action: PayloadAction<string>) {

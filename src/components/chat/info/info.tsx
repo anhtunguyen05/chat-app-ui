@@ -109,6 +109,36 @@ export default function Info() {
     };
   }, [selectedConversation]);
 
+  const lastReadMessageId = React.useMemo(() => {
+    if (!chatMessages || chatMessages.length === 0) return null;
+
+    // Lấy danh sách tin nhắn của tôi
+    const myMessages: any = chatMessages.filter(
+      (m: any) => m.sender?.id === currentUserId
+    );
+    if (myMessages.length === 0) return null;
+
+    // Lấy các tin nhắn của tôi mà chưa đọc
+    const unreadMyMessages = myMessages.filter((m: any) => !m.isRead);
+
+    // Nếu có tin chưa đọc → lấy tin ngay trước nó
+    if (unreadMyMessages.length > 0) {
+      const firstUnread = unreadMyMessages[0] as any;
+      const index = myMessages.findIndex((m: any) => m.id === firstUnread.id);
+
+      // Tin trước vị trí này là đã đọc
+      if (index > 0) {
+        return myMessages[index - 1].id;
+      }
+
+      // Nếu tin chưa đọc là tin đầu tiên → không có gì để show avatar
+      return null;
+    }
+
+    // Nếu không có tin chưa đọc → tin cuối của tôi là đã đọc
+    return myMessages[myMessages.length - 1].id;
+  }, [chatMessages, currentUserId]);
+
   return (
     <div
       className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-3 bg-transparent "
@@ -120,25 +150,27 @@ export default function Info() {
             Chưa có tin nhắn nào
           </div>
         )}
-  
+
         {chatMessages.map((msg: any) => {
           const isMine = msg.sender?.id === currentUserId;
           const hasText = msg.text && msg.text.trim() !== "";
           const hasImages = msg.imageUrls && msg.imageUrls.length > 0;
-  
-          // 🔹 Nếu là group → hiển thị avatar của người gửi
+
+          // Avatar người khác
           const showAvatar =
             !isMine &&
             (selectedConversation?.type === "group" || chatMessages.length > 1);
-  
+
+          const isLastRead = msg.id === lastReadMessageId;
+
           return (
             <div
               key={msg.id}
-              className={`flex items-end gap-2 ${
+              className={`flex items-start gap-2 ${
                 isMine ? "justify-end" : "justify-start"
               }`}
             >
-              {/* 🔹 Avatar */}
+              {/* 🔹 Avatar trái (chỉ hiện nếu là tin nhắn người khác) */}
               {showAvatar && (
                 <UserAvatar
                   src={
@@ -148,58 +180,99 @@ export default function Info() {
                         "/default-avatar.jpg"
                   }
                   size={28}
+                  className="mt-3"
                 />
               )}
-  
-              {/* 🔹 Nội dung tin nhắn */}
-              <div
-                className={`max-w-[70%] rounded-2xl overflow-hidden ${
-                  isMine
-                    ? "bg-violet-600 text-white rounded-br-none"
-                    : "bg-gray-200 text-black rounded-bl-none"
-                }`}
-              >
-                {/* ẢNH */}
-                {hasImages && (
-                  <div
-                    className={`grid gap-1 ${
-                      msg.imageUrls.length === 1
-                        ? "grid-cols-1"
-                        : msg.imageUrls.length === 2
-                        ? "grid-cols-2"
-                        : "grid-cols-2"
-                    }`}
-                  >
-                    {msg.imageUrls.map((img: string, idx: number) => (
-                      <img
-                        key={idx}
-                        src={img}
-                        alt=""
-                        className="w-full max-h-56 object-cover"
+
+              {/* 🔹 Wrapper bong bóng + avatar đã đọc */}
+              <div className="flex flex-col max-w-[70%]">
+                {/* ------------------ BONG BÓNG TIN NHẮN ------------------ */}
+                <div
+                  className={`rounded-2xl overflow-hidden ${
+                    isMine
+                      ? "bg-violet-600 text-white rounded-br-none"
+                      : "bg-gray-200 text-black rounded-bl-none"
+                  }`}
+                >
+                  {/* ẢNH */}
+                  {hasImages && (
+                    <div
+                      className={`grid gap-1 ${
+                        msg.imageUrls.length === 1
+                          ? "grid-cols-1"
+                          : msg.imageUrls.length === 2
+                          ? "grid-cols-2"
+                          : "grid-cols-2"
+                      }`}
+                    >
+                      {msg.imageUrls.map((img: string, idx: number) => (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt=""
+                          className="w-full max-h-56 object-cover"
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* TEXT */}
+                  {hasText && (
+                    <div
+                      className={`px-3 py-2 ${
+                        hasImages ? "border-t border-black/10" : ""
+                      }`}
+                    >
+                      {isOnlyEmoji(msg.text) ? (
+                        <span className="text-3xl leading-none">
+                          {msg.text}
+                        </span>
+                      ) : (
+                        <span>{msg.text}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* -------------------------------------------------------- */}
+
+                {/* ------------------ PRIVATE – avatar đã đọc ------------------ */}
+                {isMine &&
+                  isLastRead &&
+                  selectedConversation?.type === "private" && (
+                    <div className="mt-1 self-end">
+                      <UserAvatar
+                        src={selectedConversation.target?.avatarUrl}
+                        size={18}
                       />
-                    ))}
-                  </div>
-                )}
-  
-                {/* TEXT */}
-                {hasText && (
-                  <div
-                    className={`px-3 py-2 ${
-                      hasImages ? "border-t border-white/20" : ""
-                    }`}
-                  >
-                    {isOnlyEmoji(msg.text) ? (
-                      <span className="text-3xl">{msg.text}</span>
-                    ) : (
-                      <span>{msg.text}</span>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
+
+                {/* ------------------ GROUP – nhiều avatar đã đọc ------------------ */}
+                {isMine &&
+                  isLastRead &&
+                  selectedConversation?.type === "group" &&
+                  Array.isArray(msg.readBy) &&
+                  msg.readBy.length > 0 && (
+                    <div className="flex mt-1 -space-x-2 self-end">
+                      {msg.readBy.slice(0, 3).map((memberId: string) => {
+                        const member = members.find(
+                          (m: Member) => m.id === memberId
+                        );
+                        return (
+                          <UserAvatar
+                            key={memberId}
+                            src={member?.avatarUrl}
+                            size={18}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
               </div>
             </div>
           );
         })}
-  
+
         {typingUsers.length > 0 && (
           <div className="flex items-end gap-2 justify-start">
             {typingUsers.slice(0, 2).map((id) => {
@@ -213,9 +286,10 @@ export default function Info() {
             </div>
           </div>
         )}
-  
+
         <ChatScrollHandler
-        userId={currentUserId!}
+          userId={currentUserId!}
+          lastReadMessageId={lastReadMessageId}
           containerRef={containerRef}
           chatMessages={chatMessages}
           selectedConversation={selectedConversation}

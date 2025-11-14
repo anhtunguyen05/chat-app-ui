@@ -11,6 +11,7 @@ export const initialState: ChatState = {
   page: 1,
   hasMore: true,
   onlineList: [],
+  lastReadMessageId: null,
 };
 
 const chatSlice = createSlice({
@@ -108,23 +109,26 @@ const chatSlice = createSlice({
       state,
       action: PayloadAction<{
         conversationId: string;
-        userId: string;
+        lastReadMessageId: string;
       }>
     ) {},
     updateMessageReadStatus: (
       state,
       action: PayloadAction<{
         conversationId: string;
-        userId: string;
+        lastReadMessageId: string;
       }>
     ) => {
-      const { conversationId, userId } = action.payload;
+      const { conversationId, lastReadMessageId } = action.payload;
 
-      const existing = state.conversations.find((c) => c.id === conversationId);
-      if (!existing) return;
+      const conv = state.conversations.find((c) => c.id === conversationId);
+      if (!conv) return;
 
-      // Người khác đọc tin của mình → hiện “đã xem”
-      existing.isRead = true;
+      // Set cho sidebar
+      conv.isRead = true;
+
+      // Set cho UI chat message
+      state.lastReadMessageId = lastReadMessageId;
     },
 
     setActiveTabRequest(state, action: PayloadAction<string>) {},
