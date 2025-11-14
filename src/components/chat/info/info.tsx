@@ -215,6 +215,7 @@ export default function Info() {
         )}
   
         <ChatScrollHandler
+        userId={currentUserId!}
           containerRef={containerRef}
           chatMessages={chatMessages}
           selectedConversation={selectedConversation}
