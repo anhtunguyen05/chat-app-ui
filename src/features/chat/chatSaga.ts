@@ -8,6 +8,8 @@ import {
   setSelectedConversation,
   addOrUpdateConversationRequest,
   addOrUpdateConversation,
+  updateMessageReadStatusRequest,
+  updateMessageReadStatus,
   setActiveTabRequest,
   setActiveTab,
   setMessages,
@@ -46,6 +48,17 @@ function* handleAddOrUpdateConversation(
 ) {
   const message = action.payload;
   yield put(addOrUpdateConversation(message));
+}
+
+function* handleUpdateMessageReadStatus(
+  action: PayloadAction<{
+    conversationId: string;
+    userId: string;
+    currentUserId: string;
+  }>
+) {
+  const { conversationId, userId, currentUserId } = action.payload;
+  yield put(updateMessageReadStatus({ conversationId, userId }));
 }
 
 function* handleSetActiveTab(action: PayloadAction<string>) {
@@ -113,6 +126,10 @@ export default function* chatSaga() {
   yield takeLatest(
     addOrUpdateConversationRequest.type,
     handleAddOrUpdateConversation
+  );
+  yield takeLatest(
+    updateMessageReadStatusRequest.type,
+    handleUpdateMessageReadStatus
   );
   yield takeLatest(setActiveTabRequest.type, handleSetActiveTab);
   yield takeLatest(fetchMessagesRequest.type, handleFetchMessages);

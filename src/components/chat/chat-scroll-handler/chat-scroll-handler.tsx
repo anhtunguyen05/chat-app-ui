@@ -1,10 +1,15 @@
-import React from "react";
+import React, { use } from "react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useThrottle } from "@/hooks/useThrottle";
-import { fetchMessagesRequest } from "@/features/chat/chatSlice";
+import {
+  fetchMessagesRequest,
+  updateMessageReadStatusRequest,
+} from "@/features/chat/chatSlice";
 import { Conversation } from "@/features/chat/chatType";
+import { markMessagesAsRead } from "@/services/chatService";
 
 interface ChatScrollHandlerProps {
+  userId: string;
   containerRef: React.RefObject<HTMLDivElement | null>;
   chatMessages: any[];
   selectedConversation: Conversation | null;
@@ -13,6 +18,7 @@ interface ChatScrollHandlerProps {
 }
 
 export default function ChatScrollHandler({
+  userId,
   containerRef,
   chatMessages,
   selectedConversation,
@@ -48,6 +54,26 @@ export default function ChatScrollHandler({
     const container = containerRef.current;
     if (!container || !hasMore || !selectedConversation) return;
 
+    const isAtBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      10;
+
+    if (isAtBottom) {
+      // Gửi socket lên server
+      markMessagesAsRead(
+        userId, 
+        selectedConversation.id,
+        selectedConversation.type === "group"
+      );
+
+      // Cập nhật Redux state (đã xem)
+      dispatch(
+        updateMessageReadStatusRequest({
+          conversationId: selectedConversation.id,
+          userId: userId,
+        })
+      );
+    }
     if (container.scrollTop <= 50) {
       prevScrollHeight.current = container.scrollHeight;
       dispatch(

@@ -104,6 +104,28 @@ const chatSlice = createSlice({
         state.conversations.unshift(newConv);
       }
     },
+    updateMessageReadStatusRequest(
+      state,
+      action: PayloadAction<{
+        conversationId: string;
+        userId: string;
+      }>
+    ) {},
+    updateMessageReadStatus: (
+      state,
+      action: PayloadAction<{
+        conversationId: string;
+        userId: string;
+      }>
+    ) => {
+      const { conversationId, userId } = action.payload;
+
+      const existing = state.conversations.find((c) => c.id === conversationId);
+      if (!existing) return;
+
+      // Người khác đọc tin của mình → hiện “đã xem”
+      existing.isRead = true;
+    },
 
     setActiveTabRequest(state, action: PayloadAction<string>) {},
     setActiveTab(state, action: PayloadAction<string>) {
@@ -144,6 +166,8 @@ export const {
   setSelectedConversation,
   addOrUpdateConversationRequest,
   addOrUpdateConversation,
+  updateMessageReadStatusRequest,
+  updateMessageReadStatus,
   setActiveTabRequest,
   setActiveTab,
   setMessages,
