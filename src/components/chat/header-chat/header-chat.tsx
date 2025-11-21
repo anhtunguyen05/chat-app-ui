@@ -25,16 +25,15 @@ export default function HeaderChat({ selectedConversation }: HeaderChatProps) {
     <div className="flex w-full h-16 items-center justify-between px-4 py-2 shadow-sm bg-white dark:bg-neutral-900">
       {/* Left: Avatar + Info */}
       <div className="flex items-center gap-3">
-        <UserAvatar src={selectedConversation?.target?.avatarUrl}></UserAvatar>
+        <UserAvatar src={selectedConversation?.avatar}></UserAvatar>
         <div className="flex flex-col leading-tight">
           <span className="font-semibold text-xl md:text-xl text-neutral-900 dark:text-white">
-            {selectedConversation.target.nickname ||
-              selectedConversation.target.name}
+            {selectedConversation.name}
           </span>
           <p className="text-sm text-gray-500">
             {isOnline && selectedConversation.type === "private"
               ? "Đang hoạt động"
-              : formatLastSeen(selectedConversation.target.lastSeen)}
+              : formatLastSeen(selectedConversation.lastSeen)}
           </p>
         </div>
       </div>

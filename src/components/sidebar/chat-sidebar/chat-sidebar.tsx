@@ -10,9 +10,9 @@ import {
   setConversationsRequest,
   setSelectedConversationRequest,
   setActiveTabRequest,
-  addOrUpdateConversationRequest
+  // addOrUpdateConversationRequest
 } from "@/features/chat/chatSlice";
-import { formatConversationForUI } from "@/utils/formatter";
+import { Conversation } from "@/features/chat/chatType";
 
 export default function ChatSidebar() {
   const dispatch = useAppDispatch();
@@ -53,23 +53,19 @@ export default function ChatSidebar() {
         </MessageItem>
       </div>
       <div className="overflow-y-auto">
-        {conversations.map((conversation: any) => {
-          const formatted = formatConversationForUI(conversation);
+        {conversations.map((conversation: Conversation) => {
           return (
             <ChatItem
-              key={formatted.id}
-              avatarUrl={formatted.avatarUrl}
-              nickname={formatted.nickname}
-              message={formatted.message}
-              time={formatted.time}
-              unread={!formatted.isRead}
-              active={selectedConversation?.id === formatted.id}
-              lastSenderName={formatted.message?.sender?.nickname}
-              isCurrentUserSender={formatted.message?.sender === user?.id}
-              onClick={() => {
-                console.log(formatted.raw);
-                dispatch(setSelectedConversationRequest(formatted.raw));
-              }}
+              key={conversation.id}
+              conversation={conversation}
+              active={
+                selectedConversation
+                  ? selectedConversation.id === conversation.id
+                  : false
+              }
+              onClick={() =>
+                dispatch(setSelectedConversationRequest(conversation))
+              }
             />
           );
         })}

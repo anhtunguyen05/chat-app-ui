@@ -1,6 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/types/user";
-import { ChatState, Conversation, Message } from "@/features/chat/chatType";
+import {
+  ChatState,
+  Conversation,
+  Message,
+
+} from "@/features/chat/chatType";
 import { set } from "zod";
 
 export const initialState: ChatState = {
@@ -40,96 +45,65 @@ const chatSlice = createSlice({
     ) => {
       const { message, currentUserId } = action.payload;
 
-      let convId: string | null | undefined;
-
-      if (message.group) {
-        convId = message.group;
-      } else {
-        convId =
-          message.sender.id === currentUserId
-            ? message.receiver?.id
-            : message.sender.id;
-      }
-
-      if (!convId) return;
-
-      const existing = (state.conversations as Conversation[]).find(
-        (c) => c.id === convId
+      const existing = state.conversations.find(
+        (c) => c.id === message.conversation
       );
 
-      const isFromMe = message.sender.id === currentUserId;
+      const isMine = message.sender.id === currentUserId;
+      const now = new Date();
 
       if (existing) {
-        existing.lastMessage = message;
-        existing.updatedAt = message.createdAt || new Date().toISOString();
+        // Cập nhật conversation cũ
+        existing.lastMessage = message.text!;
+        existing.lastMessageAt = message.createdAt
+          ? new Date(message.createdAt)
+          : now;
+        existing.updatedAt = now;
 
-        // ✅ Nếu mình gửi tin nhắn → xem như đoạn này đã đọc
-        if (isFromMe) {
-          existing.isRead = true;
-        } else {
-          // ✅ Nếu tin từ người khác → chưa đọc
-          existing.isRead = false;
-        }
-
-        // 🔹 Đưa lên đầu
-        state.conversations = [
-          existing,
-          ...state.conversations.filter((c) => c.id !== convId),
-        ];
+        // Nếu mình gửi → tin nhắn đã đọc
+        // Nếu người khác gửi → chưa đọc
+        existing.isLastMessageRead = isMine;
+        existing.isRead = isMine;
       } else {
-        const newConv: Conversation = {
-          id: convId,
-          type: message.group ? "group" : "private",
-          target: message.group
-            ? {
-                id: convId,
-                name: message.group || "Nhóm mới",
-                avatarUrl: "/group-default.jpg",
-              }
-            : {
-                id: convId,
-                nickname:
-                  message.sender.id === currentUserId
-                    ? message.receiver?.nickname || "Người dùng"
-                    : message.sender?.nickname || "Người dùng",
-                avatarUrl:
-                  message.sender.id === currentUserId
-                    ? message.receiver?.avatarUrl || "/default-avatar.jpg"
-                    : message.sender?.avatarUrl || "/default-avatar.jpg",
-              },
-          lastMessage: message,
-          updatedAt: message.createdAt || new Date().toISOString(),
-          isRead: isFromMe, // mình gửi thì true
-        };
-
-        state.conversations.unshift(newConv);
+        // Tạo mới nếu chưa tồn tại
+        state.conversations.push({
+          id: message.id!,
+          type: "private",
+          name: "",
+          lastMessage: message.text!,
+          lastMessageAt: message.createdAt ? new Date(message.createdAt) : now,
+          updatedAt: now,
+          createdAt: now,
+          isLastMessageRead: isMine,
+          isRead: isMine,
+        });
       }
     },
-    updateMessageReadStatusRequest(
-      state,
-      action: PayloadAction<{
-        conversationId: string;
-        lastReadMessageId: string;
-      }>
-    ) {},
-    updateMessageReadStatus: (
-      state,
-      action: PayloadAction<{
-        conversationId: string;
-        lastReadMessageId: string;
-      }>
-    ) => {
-      const { conversationId, lastReadMessageId } = action.payload;
 
-      const conv = state.conversations.find((c) => c.id === conversationId);
-      if (!conv) return;
-
-      // Set cho sidebar
-      conv.isRead = true;
-
-      // Set cho UI chat message
-      state.lastReadMessageId = lastReadMessageId;
+    setLastReadMessageIdRequest(state, action: PayloadAction<string | null>) {},
+    setLastReadMessageId(state, action: PayloadAction<string | null>) {
+      state.lastReadMessageId = action.payload;
     },
+    // updateMessageReadStatusRequest(
+    //   state,
+    //   action: PayloadAction<{
+    //     conversationId: string;
+    //   }>
+    // ) {},
+    // updateMessageReadStatus: (
+    //   state,
+    //   action: PayloadAction<{
+    //     conversationId: string;
+    //   }>
+    // ) => {
+    //   const { conversationId } = action.payload;
+
+    //   const conv = state.conversations.find((c) => c.id === conversationId);
+    //   if (!conv) return;
+
+    //   // Set cho sidebar
+    //   conv.isRead = true;
+    // },
 
     setActiveTabRequest(state, action: PayloadAction<string>) {},
     setActiveTab(state, action: PayloadAction<string>) {
@@ -170,8 +144,10 @@ export const {
   setSelectedConversation,
   addOrUpdateConversationRequest,
   addOrUpdateConversation,
-  updateMessageReadStatusRequest,
-  updateMessageReadStatus,
+  setLastReadMessageIdRequest,
+  setLastReadMessageId,
+  // updateMessageReadStatusRequest,
+  // updateMessageReadStatus,
   setActiveTabRequest,
   setActiveTab,
   setMessages,

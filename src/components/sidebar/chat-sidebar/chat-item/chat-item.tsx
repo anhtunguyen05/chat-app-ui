@@ -1,47 +1,27 @@
 import React from "react";
+import { Conversation } from "@/features/chat/chatType";
 import UserAvatar from "@/components/user-avatar/user-avatar";
+import { timeFormat } from "@/utils/formatter";
+import { time } from "console";
 
 interface ChatItemProps {
-  avatarUrl?: string;
-  nickname: string;
-  message?: string;
-  time?: string;
-  unread?: boolean;
-  missedCall?: boolean;
+  conversation: Conversation;
   onClick?: () => void;
   active?: boolean;
-  isGroup?: boolean;
-  lastSenderName?: string;
-  isCurrentUserSender?: boolean;
 }
 
-const defaultAvatar = "/default-avatar.jpg";
+export default function ChatItem({ conversation, onClick, active = false }: ChatItemProps) {
+  const {
+    name,
+    avatar,
+    lastMessage,
+    lastMessageAt,
+    isLastMessageRead
+  } = conversation;
 
-export default function ChatItem({
-  avatarUrl = defaultAvatar,
-  nickname,
-  message,
-  time,
-  unread = false,
-  missedCall = false,
-  onClick,
-  active = false,
-  isGroup = false,
-  lastSenderName,
-  isCurrentUserSender = false,
-}: ChatItemProps) {
-  // ✅ Hiển thị nội dung tin nhắn
-  let displayMessage = "";
+  const displayMessage = lastMessage || "Chưa có tin nhắn";
 
-  if (!message) {
-    displayMessage = "Chưa có tin nhắn";
-  } else if (isGroup) {
-    displayMessage = `${lastSenderName || "Ai đó"}: ${message}`;
-  } else if (isCurrentUserSender) {
-    displayMessage = `Bạn: ${message}`;
-  } else {
-    displayMessage = message;
-  }
+  const unread = isLastMessageRead === false;
 
   return (
     <div
@@ -50,25 +30,19 @@ export default function ChatItem({
       }`}
       onClick={onClick}
     >
-      <UserAvatar src={avatarUrl} size={56} />
+      <UserAvatar src={avatar} size={56} />
 
       <div className="flex-1 min-w-0">
-        {/* Tên + thời gian */}
         <div className="flex justify-between items-center">
-          <p className="font-medium truncate">{nickname}</p>
-          {time && (
+          <p className="font-medium truncate">{name}</p>
+          {lastMessageAt && (
             <span className="text-xs text-gray-500 whitespace-nowrap">
-              {time}
+              {timeFormat(lastMessageAt)}
             </span>
           )}
         </div>
 
-        {/* Tin nhắn cuối */}
-        <p
-          className={`text-sm truncate ${
-            missedCall ? "text-red-500 font-medium" : "text-gray-600"
-          }`}
-        >
+        <p className="text-sm truncate text-gray-600">
           {displayMessage}
         </p>
       </div>

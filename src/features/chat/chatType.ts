@@ -1,11 +1,22 @@
 // import { User } from "@/types/user";
 
+export interface ConversationTarget {
+  id: string;
+  nickname?: string;
+  name?: string;
+  avatarUrl?: string;
+}
+
 export interface Conversation {
   id: string;
   type: "private" | "group";
-  target: any; // user hoặc group
-  lastMessage?: any;
-  isRead: boolean;
+  name: string;
+  avatar?: string;
+  lastMessage?: string;
+  lastMessageAt?: Date;
+  lastSeen?: Date;
+  isLastMessageRead?: boolean;
+  isRead?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,6 +30,7 @@ export interface User {
 export interface Message {
   id: string;
   sender: User;
+  conversation: string;
   receiver: User | null;
   group: string | null;
   text: string | null;
@@ -39,3 +51,5 @@ export interface ChatState {
   onlineList: string[];
   lastReadMessageId: string | null;
 }
+
+

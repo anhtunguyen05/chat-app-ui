@@ -21,25 +21,25 @@ export default function SocketProvider() {
       console.log("✅ Joined room:", user.id);
     }
 
-    const joinGroups = async () => {
-      try {
-        // 🔹 Gọi API lấy danh sách group user thuộc về
-        const groups = await getUserGroups();
-        // 🔹 Join tất cả group
-        groups.forEach((group: any) => {
-          socket.emit("joinGroup", group.id);
-        });
+    // const joinGroups = async () => {
+    //   try {
+    //     // 🔹 Gọi API lấy danh sách group user thuộc về
+    //     const groups = await getUserGroups();
+    //     // 🔹 Join tất cả group
+    //     groups.forEach((group: any) => {
+    //       socket.emit("joinGroup", group.id);
+    //     });
 
-        console.log(
-          "✅ Joined groups:",
-          groups.map((g: any) => g.id)
-        );
-      } catch (err) {
-        console.error("❌ Failed to join groups:", err);
-      }
-    };
+    //     console.log(
+    //       "✅ Joined groups:",
+    //       groups.map((g: any) => g.id)
+    //     );
+    //   } catch (err) {
+    //     console.error("❌ Failed to join groups:", err);
+    //   }
+    // };
 
-    joinGroups();
+    // joinGroups();
 
     // Lắng nghe tin nhắn đến
     socket.on("receiveMessage", (message) => {

@@ -9,6 +9,6 @@ export async function getUserGroups(): Promise<Object[]> {
 }
 
 export async function getGroupMembers(groupId: string): Promise<Member[]> {
-  const res = await api.get<Member[]>(`/groups/${groupId}/members`); 
+  const res = await api.get<Member[]>(`conversations/group/${groupId}/members`); 
   return res.data;
 }

@@ -6,7 +6,10 @@ import { socket } from "@/lib/socket";
 import { isOnlyEmoji } from "@/lib/utils";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { fetchMessagesRequest } from "@/features/chat/chatSlice";
+import {
+  fetchMessagesRequest,
+  setLastReadMessageIdRequest,
+} from "@/features/chat/chatSlice";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import ChatScrollHandler from "@/components/chat/chat-scroll-handler/chat-scroll-handler";
 import { Member } from "@/types/group";
@@ -19,15 +22,15 @@ export default function Info() {
     (state) => state.chat
   );
   const chatMessages = useAppSelector((state) => state.chat.messages) || [];
+  const lastReadMessageId = useAppSelector(
+    (state) => state.chat.lastReadMessageId
+  );
 
   const [isTyping, setIsTyping] = React.useState(false);
   const [typingUsers, setTypingUsers] = React.useState<string[]>([]);
   const [members, setMembers] = React.useState<Member[]>([]);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
-
-  const avatarUrl = selectedConversation?.target.avatarUrl || undefined;
-  const nickname = selectedConversation?.target.nickname || "Người dùng";
 
   const fetchMembers = async (groupId: string) => {
     try {
@@ -41,6 +44,10 @@ export default function Info() {
   React.useEffect(() => {
     if (!selectedConversation) return;
 
+    socket.emit("joinConversation", {
+      conversationId: selectedConversation.id,
+    });
+
     dispatch(
       fetchMessagesRequest({
         type: selectedConversation.type,
@@ -52,6 +59,12 @@ export default function Info() {
     if (selectedConversation.type === "group") {
       fetchMembers(selectedConversation.id);
     }
+
+    return () => {
+      socket.emit("leaveConversation", {
+        conversationId: selectedConversation.id,
+      });
+    }
   }, [dispatch, selectedConversation]);
 
   React.useEffect(() => {
@@ -59,24 +72,20 @@ export default function Info() {
 
     const handleTyping = ({
       senderId,
-      groupId,
+      conversationId,
     }: {
       senderId: string;
-      groupId?: string;
+      conversationId: string;
     }) => {
-      const isGroup = selectedConversation.type === "group";
+      // Không hiển thị typing của chính mình
+      if (senderId === currentUserId) return;
 
-      // 🔹 Nếu là group → chỉ hiển thị typing trong group đúng ID
-      // 🔹 Nếu là private → kiểm tra người gửi có đúng user đang chat
-      if (
-        (isGroup &&
-          groupId === selectedConversation.id &&
-          senderId !== currentUserId) ||
-        (!isGroup && senderId === selectedConversation.id)
-      ) {
-        setIsTyping(true);
-      }
+      // Chỉ hiển thị nếu là conversation đang mở
+      if (conversationId !== selectedConversation.id) return;
 
+      setIsTyping(true);
+
+      // Lưu danh sách người đang typing (group)
       setTypingUsers((prev) =>
         prev.includes(senderId) ? prev : [...prev, senderId]
       );
@@ -84,20 +93,18 @@ export default function Info() {
 
     const handleStopTyping = ({
       senderId,
-      groupId,
+      conversationId,
     }: {
       senderId: string;
-      groupId?: string;
+      conversationId: string;
     }) => {
-      const isGroup = selectedConversation.type === "group";
+      if (conversationId !== selectedConversation.id) return;
 
-      if (
-        (isGroup && groupId === selectedConversation.id) ||
-        (!isGroup && senderId === selectedConversation.id)
-      ) {
+      setTypingUsers((prev) => prev.filter((id) => id !== senderId));
+
+      if (typingUsers.length <= 1) {
         setIsTyping(false);
       }
-      setTypingUsers((prev) => prev.filter((id) => id !== senderId));
     };
 
     socket.on("typing", handleTyping);
@@ -109,35 +116,36 @@ export default function Info() {
     };
   }, [selectedConversation]);
 
-  const lastReadMessageId = React.useMemo(() => {
-    if (!chatMessages || chatMessages.length === 0) return null;
+  // React.useEffect(() => {
+  //   if (!chatMessages || chatMessages.length === 0) return;
 
-    // Lấy danh sách tin nhắn của tôi
-    const myMessages: any = chatMessages.filter(
-      (m: any) => m.sender?.id === currentUserId
-    );
-    if (myMessages.length === 0) return null;
+  //   const myMessages: any = chatMessages.filter(
+  //     (m: any) => m.sender?.id === currentUserId
+  //   );
 
-    // Lấy các tin nhắn của tôi mà chưa đọc
-    const unreadMyMessages = myMessages.filter((m: any) => !m.isRead);
+  //   if (myMessages.length === 0) {
+  //     dispatch(setLastReadMessageIdRequest(null));
+  //     return;
+  //   }
 
-    // Nếu có tin chưa đọc → lấy tin ngay trước nó
-    if (unreadMyMessages.length > 0) {
-      const firstUnread = unreadMyMessages[0] as any;
-      const index = myMessages.findIndex((m: any) => m.id === firstUnread.id);
+  //   const unreadMyMessages: any = myMessages.filter((m: any) => !m.isRead);
 
-      // Tin trước vị trí này là đã đọc
-      if (index > 0) {
-        return myMessages[index - 1].id;
-      }
+  //   if (unreadMyMessages.length > 0) {
+  //     const firstUnread = unreadMyMessages[0] as any;
+  //     const index = myMessages.findIndex((m: any) => m.id === firstUnread.id);
 
-      // Nếu tin chưa đọc là tin đầu tiên → không có gì để show avatar
-      return null;
-    }
+  //     if (index > 0) {
+  //       dispatch(setLastReadMessageIdRequest(myMessages[index - 1].id));
+  //       return;
+  //     }
 
-    // Nếu không có tin chưa đọc → tin cuối của tôi là đã đọc
-    return myMessages[myMessages.length - 1].id;
-  }, [chatMessages, currentUserId]);
+  //     dispatch(setLastReadMessageIdRequest(null));
+  //     return;
+  //   }
+
+  //   // Không có tin chưa đọc => tin cuối của mình đã đọc
+  //   dispatch(setLastReadMessageIdRequest(myMessages[myMessages.length - 1].id));
+  // }, [selectedConversation]);
 
   return (
     <div
@@ -176,8 +184,7 @@ export default function Info() {
                   src={
                     selectedConversation?.type === "group"
                       ? msg.sender?.avatarUrl || "/default-avatar.jpg"
-                      : selectedConversation?.target?.avatarUrl ||
-                        "/default-avatar.jpg"
+                      : selectedConversation?.avatar || "/default-avatar.jpg"
                   }
                   size={28}
                   className="mt-3"
@@ -240,10 +247,7 @@ export default function Info() {
                   isLastRead &&
                   selectedConversation?.type === "private" && (
                     <div className="mt-1 self-end">
-                      <UserAvatar
-                        src={selectedConversation.target?.avatarUrl}
-                        size={18}
-                      />
+                      <UserAvatar src={selectedConversation.avatar} size={18} />
                     </div>
                   )}
 
@@ -275,10 +279,20 @@ export default function Info() {
 
         {typingUsers.length > 0 && (
           <div className="flex items-end gap-2 justify-start">
-            {typingUsers.slice(0, 2).map((id) => {
-              const member = members.find((m: Member) => m.id === id);
-              return <UserAvatar key={id} src={member?.avatarUrl} size={28} />;
+            {/* Avatar của tối đa 2 người đang typing */}
+            {typingUsers.slice(0, 2).map((userId) => {
+              const member = members.find((m) => m.id === userId);
+
+              return (
+                <UserAvatar
+                  key={userId}
+                  src={member?.avatarUrl || "/default-avatar.png"}
+                  size={28}
+                />
+              );
             })}
+
+            {/* Dấu 3 chấm typing */}
             <div className="flex items-center px-3 py-2 bg-gray-200 rounded-2xl">
               <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
               <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
@@ -289,6 +303,7 @@ export default function Info() {
 
         <ChatScrollHandler
           userId={currentUserId!}
+          latestMsg={chatMessages[chatMessages.length - 1]}
           lastReadMessageId={lastReadMessageId}
           containerRef={containerRef}
           chatMessages={chatMessages}
