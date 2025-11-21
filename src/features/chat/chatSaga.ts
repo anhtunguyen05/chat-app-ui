@@ -8,8 +8,10 @@ import {
   setSelectedConversation,
   addOrUpdateConversationRequest,
   addOrUpdateConversation,
-  updateMessageReadStatusRequest,
-  updateMessageReadStatus,
+  setLastReadMessageIdRequest,
+  setLastReadMessageId,
+  // updateMessageReadStatusRequest,
+  // updateMessageReadStatus,
   setActiveTabRequest,
   setActiveTab,
   setMessages,
@@ -50,15 +52,25 @@ function* handleAddOrUpdateConversation(
   yield put(addOrUpdateConversation(message));
 }
 
-function* handleUpdateMessageReadStatus(
-  action: PayloadAction<{
-    conversationId: string;
-    lastReadMessageId: string;
-  }>
-) {
-  const { conversationId, lastReadMessageId } = action.payload;
-  yield put(updateMessageReadStatus({ conversationId,  lastReadMessageId}));
+function* handleSetLastReadMessageId(action: PayloadAction<string | null>) {
+  try {
+    yield put(setLastReadMessageId(action.payload));
+  } catch (error: any) {
+    console.error(
+      "Failed to set last read message ID:",
+      error.message || error
+    );
+  }
 }
+
+// function* handleUpdateMessageReadStatus(
+//   action: PayloadAction<{
+//     conversationId: string;
+//   }>
+// ) {
+//   const { conversationId } = action.payload;
+//   yield put(updateMessageReadStatus({ conversationId }));
+// }
 
 function* handleSetActiveTab(action: PayloadAction<string>) {
   try {
@@ -127,9 +139,13 @@ export default function* chatSaga() {
     handleAddOrUpdateConversation
   );
   yield takeLatest(
-    updateMessageReadStatusRequest.type,
-    handleUpdateMessageReadStatus
+    setLastReadMessageIdRequest.type,
+    handleSetLastReadMessageId
   );
+  // yield takeLatest(
+  //   updateMessageReadStatusRequest.type,
+  //   handleUpdateMessageReadStatus
+  // );
   yield takeLatest(setActiveTabRequest.type, handleSetActiveTab);
   yield takeLatest(fetchMessagesRequest.type, handleFetchMessages);
   yield takeLatest(addMessageRequest.type, handleAddMessage);

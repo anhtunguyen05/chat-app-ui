@@ -1,19 +1,25 @@
 import api from "@/lib/axios";
 import { socket } from "@/lib/socket";
 import { User } from "@/types/user";
+import { Conversation } from "@/features/chat/chatType";
+
+export interface ConversationResponse {
+  success: boolean;
+  data: Conversation[];
+}
 
 export async function getConversations(): Promise<Object[]> {
-  const res = await api.get<Object[]>(`/chats`);
-  return res.data;
+  const res = await api.get<ConversationResponse>(`/conversations`);
+  return res.data.data;
 }
 
 export async function getConversation(
   type: "private" | "group",
-  targetId: string,
+  conversationId: string,
   page = 1,
   limit = 20
 ): Promise<Object[]> {
-  const res = await api.get(`/chats/${type}/${targetId}`, {
+  const res = await api.get(`/chats/${type}/${conversationId}`, {
     params: { page, limit },
   });
   return res.data;
@@ -42,20 +48,22 @@ export function sendMessage(
 ): void {
   const payload: any = {
     senderId,
+    conversationId: targetId,
     text,
     imageUrls,
     type: msgType,
   };
 
-  if (type === "group") {
-    payload.groupId = targetId;
-    console.log("📤 Sending group message:", payload);
-    socket.emit("sendGroupMessage", payload);
-  } else {
-    payload.receiverId = targetId;
-    console.log("📤 Sending private message:", payload);
-    socket.emit("sendMessage", payload);
-  }
+  // if (type === "group") {
+  //   payload.groupId = targetId;
+  //   console.log("📤 Sending group message:", payload);
+  //   socket.emit("sendGroupMessage", payload);
+  // } else {
+  //   payload.receiverId = targetId;
+  //   console.log("📤 Sending private message:", payload);
+  //   socket.emit("sendMessage", payload);
+  // }
+  socket.emit("sendMessage", payload);
 }
 
 export function markMessagesAsRead(
@@ -63,33 +71,29 @@ export function markMessagesAsRead(
   chatId: string,
   isGroup: boolean = false
 ) {
-  socket.emit("markAsRead", { 
+  socket.emit("markAsRead", {
     userId,
     chatId,
-    isGroup
+    isGroup,
   });
 }
 
 export function typing(
   senderId: string,
-  targetId: string,
-  isGroup: boolean = false
+  conversationId: string,
 ) {
   socket.emit("typing", {
     senderId,
-    receiverId: isGroup ? null : targetId,
-    groupId: isGroup ? targetId : null,
+    conversationId
   });
 }
 
 export function stopTyping(
   senderId: string,
-  targetId: string,
-  isGroup: boolean = false
+  conversationId: string,
 ) {
   socket.emit("stopTyping", {
     senderId,
-    receiverId: isGroup ? null : targetId,
-    groupId: isGroup ? targetId : null,
+    conversationId
   });
 }

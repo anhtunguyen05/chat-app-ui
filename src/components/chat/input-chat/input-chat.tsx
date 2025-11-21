@@ -11,7 +11,6 @@ import {
   stopTyping,
   uploadImages,
 } from "@/services/chatService";
-import { ca } from "zod/v4/locales";
 
 export default function InputChat() {
   const [message, setMessage] = useState("");
@@ -31,12 +30,12 @@ export default function InputChat() {
 
     const isGroup = selectedConversation.type === "group"; // hoặc bạn có field riêng
 
-    typing(currentUser.id, selectedConversation.id, isGroup);
+    typing(currentUser.id, selectedConversation.id);
 
     // Nếu sau 2s không gõ nữa → gửi "stopTyping"
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
-      stopTyping(currentUser.id, selectedConversation.id, isGroup);
+      stopTyping(currentUser.id, selectedConversation.id);
     }, 2000);
   };
 
