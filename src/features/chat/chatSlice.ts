@@ -1,11 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/types/user";
-import {
-  ChatState,
-  Conversation,
-  Message,
-
-} from "@/features/chat/chatType";
+import { ChatState, Conversation, Message } from "@/features/chat/chatType";
 import { set } from "zod";
 
 export const initialState: ChatState = {
@@ -112,8 +107,7 @@ const chatSlice = createSlice({
     fetchMessagesRequest(
       state,
       action: PayloadAction<{
-        type: "private" | "group";
-        targetId: string;
+        conversationId: string;
         page?: number;
       }>
     ) {},
@@ -127,6 +121,27 @@ const chatSlice = createSlice({
     addMessage: (state, action: PayloadAction<Object>) => {
       state.messages.push(action.payload);
     },
+    addPendingMessageRequest(state, action: PayloadAction<any>) {},
+    addPendingMessage: (state, action: PayloadAction<any>) => {
+      const msg = action.payload;
+
+      // 1. Nếu message đã tồn tại → bỏ qua
+      if (state.messages.some((m: any) => m.id === msg.id)) return;
+
+      // 2. Chỉ add pending nếu conversation đang mở
+      if (state.selectedConversation?.id === msg.conversationId) {
+        state.messages.push(msg);
+      }
+
+      // 3. Nếu là conversation khác → tăng unread badge
+      // else {
+      //   if (!state.selectedConversation?.unread[msg.conversationId]) {
+      //     state.selectedConversation.unread[msg.conversationId] = 0;
+      //   }
+      //   state.selectedConversation?.unread[msg.conversationId]++;
+      // }
+    },
+
     setOnlineListRequest(state, action: PayloadAction<string[]>) {},
     setOnlineList(state, action: PayloadAction<string[]>) {
       state.onlineList = action.payload;
@@ -155,6 +170,8 @@ export const {
   appendMessages,
   addMessageRequest,
   addMessage,
+  addPendingMessageRequest,
+  addPendingMessage,
   setOnlineListRequest,
   setOnlineList,
   setHasMore,

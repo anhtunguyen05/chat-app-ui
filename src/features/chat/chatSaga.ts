@@ -18,6 +18,8 @@ import {
   fetchMessagesRequest,
   addMessageRequest,
   addMessage,
+  addPendingMessageRequest,
+  addPendingMessage,
   appendMessages,
   setOnlineListRequest,
   setOnlineList,
@@ -52,6 +54,13 @@ function* handleAddOrUpdateConversation(
   yield put(addOrUpdateConversation(message));
 }
 
+function* handleAddPendingMessage(
+  action: PayloadAction<{ message: Message; currentUserId: string }>
+) {
+  const message = action.payload;
+  yield put(addPendingMessage(message));
+}
+
 function* handleSetLastReadMessageId(action: PayloadAction<string | null>) {
   try {
     yield put(setLastReadMessageId(action.payload));
@@ -82,18 +91,16 @@ function* handleSetActiveTab(action: PayloadAction<string>) {
 
 function* handleFetchMessages(
   action: PayloadAction<{
-    type: "private" | "group";
-    targetId: string;
+    conversationId: string;
     page?: number;
   }>
 ) {
   try {
-    const { type, targetId, page = 1 } = action.payload;
+    const { conversationId, page = 1 } = action.payload;
 
     const messages: Object[] = yield call(
       getConversation,
-      type,
-      targetId,
+      conversationId,
       page,
       20
     );
@@ -137,6 +144,10 @@ export default function* chatSaga() {
   yield takeLatest(
     addOrUpdateConversationRequest.type,
     handleAddOrUpdateConversation
+  );
+  yield takeLatest(
+    addPendingMessageRequest.type,
+    handleAddPendingMessage
   );
   yield takeLatest(
     setLastReadMessageIdRequest.type,

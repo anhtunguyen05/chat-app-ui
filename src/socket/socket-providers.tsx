@@ -7,8 +7,9 @@ import {
   addOrUpdateConversationRequest,
   addMessageRequest,
   setOnlineListRequest,
+  addPendingMessageRequest
 } from "@/features/chat/chatSlice";
-import { getUserGroups } from "@/services/groupService";
+import { fetchPendingMessages } from "@/services/chatService";
 
 export default function SocketProvider() {
   const dispatch = useAppDispatch();
@@ -21,25 +22,12 @@ export default function SocketProvider() {
       console.log("✅ Joined room:", user.id);
     }
 
-    // const joinGroups = async () => {
-    //   try {
-    //     // 🔹 Gọi API lấy danh sách group user thuộc về
-    //     const groups = await getUserGroups();
-    //     // 🔹 Join tất cả group
-    //     groups.forEach((group: any) => {
-    //       socket.emit("joinGroup", group.id);
-    //     });
+    const fetchPending = async () => {
+    const res = await fetchPendingMessages();
+    res.forEach(msg => dispatch(addPendingMessageRequest(msg)));
+  };
 
-    //     console.log(
-    //       "✅ Joined groups:",
-    //       groups.map((g: any) => g.id)
-    //     );
-    //   } catch (err) {
-    //     console.error("❌ Failed to join groups:", err);
-    //   }
-    // };
-
-    // joinGroups();
+  fetchPending();
 
     // Lắng nghe tin nhắn đến
     socket.on("receiveMessage", (message) => {

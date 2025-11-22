@@ -50,8 +50,7 @@ export default function Info() {
 
     dispatch(
       fetchMessagesRequest({
-        type: selectedConversation.type,
-        targetId: selectedConversation.id,
+        conversationId: selectedConversation.id,
         page: 1,
       })
     );
@@ -64,7 +63,7 @@ export default function Info() {
       socket.emit("leaveConversation", {
         conversationId: selectedConversation.id,
       });
-    }
+    };
   }, [dispatch, selectedConversation]);
 
   React.useEffect(() => {
