@@ -14,12 +14,11 @@ export async function getConversations(): Promise<Object[]> {
 }
 
 export async function getConversation(
-  type: "private" | "group",
   conversationId: string,
   page = 1,
   limit = 20
 ): Promise<Object[]> {
-  const res = await api.get(`/chats/${type}/${conversationId}`, {
+  const res = await api.get(`/chats/${conversationId}`, {
     params: { page, limit },
   });
   return res.data;
@@ -54,15 +53,6 @@ export function sendMessage(
     type: msgType,
   };
 
-  // if (type === "group") {
-  //   payload.groupId = targetId;
-  //   console.log("📤 Sending group message:", payload);
-  //   socket.emit("sendGroupMessage", payload);
-  // } else {
-  //   payload.receiverId = targetId;
-  //   console.log("📤 Sending private message:", payload);
-  //   socket.emit("sendMessage", payload);
-  // }
   socket.emit("sendMessage", payload);
 }
 
@@ -78,22 +68,21 @@ export function markMessagesAsRead(
   });
 }
 
-export function typing(
-  senderId: string,
-  conversationId: string,
-) {
+export function typing(senderId: string, conversationId: string) {
   socket.emit("typing", {
     senderId,
-    conversationId
+    conversationId,
   });
 }
 
-export function stopTyping(
-  senderId: string,
-  conversationId: string,
-) {
+export function stopTyping(senderId: string, conversationId: string) {
   socket.emit("stopTyping", {
     senderId,
-    conversationId
+    conversationId,
   });
+}
+
+export async function fetchPendingMessages(): Promise<Object[]> {
+  const res = await api.get("/chats/pending-messages");
+  return res.data.messages;
 }
