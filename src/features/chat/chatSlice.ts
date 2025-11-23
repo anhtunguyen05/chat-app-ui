@@ -55,15 +55,13 @@ const chatSlice = createSlice({
           : now;
         existing.updatedAt = now;
 
-        // Nếu mình gửi → tin nhắn đã đọc
-        // Nếu người khác gửi → chưa đọc
         existing.isLastMessageRead = isMine;
         existing.isRead = isMine;
       } else {
         // Tạo mới nếu chưa tồn tại
         state.conversations.push({
-          id: message.id!,
-          type: "private",
+          id: message.conversation, // ID phải là conversationId, không phải messageId
+          type: message.group ? "group" : "private",
           name: "",
           lastMessage: message.text!,
           lastMessageAt: message.createdAt ? new Date(message.createdAt) : now,
@@ -73,32 +71,40 @@ const chatSlice = createSlice({
           isRead: isMine,
         });
       }
+
+      // ⭐⭐⭐ SẮP XẾP LẠI SAU KHI UPDATE ⭐⭐⭐
+      state.conversations.sort((a, b) => {
+        return (
+          new Date(b.lastMessageAt || 0).getTime() -
+          new Date(a.lastMessageAt || 0).getTime()
+        );
+      });
     },
 
     setLastReadMessageIdRequest(state, action: PayloadAction<string | null>) {},
     setLastReadMessageId(state, action: PayloadAction<string | null>) {
       state.lastReadMessageId = action.payload;
     },
-    // updateMessageReadStatusRequest(
-    //   state,
-    //   action: PayloadAction<{
-    //     conversationId: string;
-    //   }>
-    // ) {},
-    // updateMessageReadStatus: (
-    //   state,
-    //   action: PayloadAction<{
-    //     conversationId: string;
-    //   }>
-    // ) => {
-    //   const { conversationId } = action.payload;
+    updateMessageReadStatusRequest(
+      state,
+      action: PayloadAction<{
+        conversationId: string;
+      }>
+    ) {},
+    updateMessageReadStatus: (
+      state,
+      action: PayloadAction<{
+        conversationId: string;
+      }>
+    ) => {
+      const { conversationId } = action.payload;
 
-    //   const conv = state.conversations.find((c) => c.id === conversationId);
-    //   if (!conv) return;
+      const conv = state.conversations.find((c) => c.id === conversationId);
+      if (!conv) return;
 
-    //   // Set cho sidebar
-    //   conv.isRead = true;
-    // },
+      // Set cho sidebar
+      conv.isLastMessageRead = true;
+    },
 
     setActiveTabRequest(state, action: PayloadAction<string>) {},
     setActiveTab(state, action: PayloadAction<string>) {
@@ -161,8 +167,8 @@ export const {
   addOrUpdateConversation,
   setLastReadMessageIdRequest,
   setLastReadMessageId,
-  // updateMessageReadStatusRequest,
-  // updateMessageReadStatus,
+  updateMessageReadStatusRequest,
+  updateMessageReadStatus,
   setActiveTabRequest,
   setActiveTab,
   setMessages,

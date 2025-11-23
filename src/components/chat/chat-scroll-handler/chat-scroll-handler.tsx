@@ -3,7 +3,7 @@ import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useThrottle } from "@/hooks/useThrottle";
 import {
   fetchMessagesRequest,
-  // updateMessageReadStatusRequest,
+  updateMessageReadStatusRequest,
 } from "@/features/chat/chatSlice";
 import { Conversation } from "@/features/chat/chatType";
 import { markMessagesAsRead } from "@/services/chatService";
@@ -17,7 +17,7 @@ interface ChatScrollHandlerProps {
   selectedConversation: Conversation | null;
   page: number;
   hasMore: boolean;
-   onReachBottom?: () => void; 
+  onReachBottom?: () => void;
 }
 
 export default function ChatScrollHandler({
@@ -55,40 +55,50 @@ export default function ChatScrollHandler({
       });
     });
 
-  const handleScroll = useThrottle(() => {
+  const checkIsAtBottom = React.useCallback(() => {
     const container = containerRef.current;
-    if (!container || !hasMore || !selectedConversation) return;
+    if (!container || !selectedConversation) return false;
 
-    const isAtBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight <
-      10;
+    const scrollTop = container.scrollTop;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+    const distanceFromBottom = scrollHeight - clientHeight - scrollTop;
+
+    const isAtBottom = Math.abs(distanceFromBottom) < 10;
+
+    return isAtBottom;
+  }, [selectedConversation]);
+
+  const handleScrollCallback = React.useCallback(() => {
+    const container = containerRef.current;
+    if (!container || !selectedConversation) return;
+
+    const isAtBottom = checkIsAtBottom();
 
     if (isAtBottom) {
-      markMessagesAsRead(
-        userId,
-        selectedConversation.id,
-        selectedConversation.type === "group"
+      console.log("📬 Reached bottom of chat.");
+      markMessagesAsRead(userId, selectedConversation.id);
+
+      dispatch(
+        updateMessageReadStatusRequest({
+          conversationId: selectedConversation.id,
+        })
       );
-
-      // dispatch(
-      //   updateMessageReadStatusRequest({
-      //     conversationId: selectedConversation.id,
-      //   })
-      // );
-
-       
     }
-    if (container.scrollTop <= 50) {
+
+    // Load more messages khi scroll lên đầu (chỉ khi còn hasMore)
+    if (hasMore && container.scrollTop <= 50) {
       prevScrollHeight.current = container.scrollHeight;
       dispatch(
         fetchMessagesRequest({
-          type: selectedConversation.type,
-          targetId: selectedConversation.id,
+          conversationId: selectedConversation.id,
           page: page + 1,
         })
       );
     }
-  }, 300);
+  }, [checkIsAtBottom, selectedConversation, userId, dispatch, hasMore, page]);
+
+  const handleScroll = useThrottle(handleScrollCallback, 300);
 
   React.useEffect(() => {
     const container = containerRef.current;
@@ -107,8 +117,22 @@ export default function ChatScrollHandler({
     // Đợi tin nhắn render xong rồi mới cuộn xuống đáy
     waitForImages(container).then(() => {
       container.scrollTop = container.scrollHeight;
+      
+      // Kiểm tra isAtBottom sau khi scroll tự động
+      setTimeout(() => {
+        const isAtBottom = checkIsAtBottom();
+        if (isAtBottom && selectedConversation) {
+          console.log("📬 Initial scroll to bottom, marking as read.");
+          markMessagesAsRead(userId, selectedConversation.id);
+          dispatch(
+            updateMessageReadStatusRequest({
+              conversationId: selectedConversation.id,
+            })
+          );
+        }
+      }, 100);
     });
-  }, [selectedConversation?.id]);
+  }, [selectedConversation?.id, checkIsAtBottom, selectedConversation, userId, dispatch]);
 
   React.useEffect(() => {
     const container = containerRef.current;
@@ -120,7 +144,22 @@ export default function ChatScrollHandler({
     } else {
       container.scrollTop = container.scrollHeight;
     }
-  }, [chatMessages]);
+
+    // Kiểm tra isAtBottom sau khi scroll tự động
+    // Sử dụng setTimeout để đảm bảo DOM đã cập nhật
+    setTimeout(() => {
+      const isAtBottom = checkIsAtBottom();
+      if (isAtBottom && selectedConversation) {
+        console.log("📬 Auto-scrolled to bottom, marking as read.");
+        markMessagesAsRead(userId, selectedConversation.id);
+        dispatch(
+          updateMessageReadStatusRequest({
+            conversationId: selectedConversation.id,
+          })
+        );
+      }
+    }, 100);
+  }, [chatMessages, checkIsAtBottom, selectedConversation, userId, dispatch]);
 
   return null; // Component này chỉ quản lý logic, không render gì
 }

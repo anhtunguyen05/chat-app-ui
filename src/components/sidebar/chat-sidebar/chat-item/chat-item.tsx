@@ -21,7 +21,7 @@ export default function ChatItem({ conversation, onClick, active = false }: Chat
 
   const displayMessage = lastMessage || "Chưa có tin nhắn";
 
-  const unread = isLastMessageRead === false;
+  const unread = !isLastMessageRead;
 
   return (
     <div

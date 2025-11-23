@@ -56,16 +56,12 @@ export function sendMessage(
   socket.emit("sendMessage", payload);
 }
 
-export function markMessagesAsRead(
-  userId: string,
-  chatId: string,
-  isGroup: boolean = false
-) {
+export function markMessagesAsRead(userId: string, conversationId: string) {
   socket.emit("markAsRead", {
     userId,
-    chatId,
-    isGroup,
+    conversationId,
   });
+  console.log("✅ Marked as read:", conversationId);
 }
 
 export function typing(senderId: string, conversationId: string) {
