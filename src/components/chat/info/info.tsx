@@ -9,37 +9,115 @@ import { useAppSelector } from "@/hooks/useAppSelector";
 import {
   fetchMessagesRequest,
   setLastReadMessageIdRequest,
+  setParticipantsRequest,
 } from "@/features/chat/chatSlice";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import ChatScrollHandler from "@/components/chat/chat-scroll-handler/chat-scroll-handler";
-import { Member } from "@/types/group";
-import { getGroupMembers } from "@/services/groupService";
+import { Participant } from "@/features/chat/chatType";
 
 export default function Info() {
   const dispatch = useAppDispatch();
   const currentUserId = useAppSelector((state) => state.user.user?.id);
-  const { selectedConversation, hasMore, page } = useAppSelector(
+  const { selectedConversation, hasMore, page, participants } = useAppSelector(
     (state) => state.chat
   );
+
+  // Debug: Log participants khi thay đổi
+  React.useEffect(() => {
+    if (participants && participants.length > 0) {
+      console.log("👥 Participants loaded:", participants);
+    }
+  }, [participants]);
   const chatMessages = useAppSelector((state) => state.chat.messages) || [];
-  const lastReadMessageId = useAppSelector(
-    (state) => state.chat.lastReadMessageId
-  );
+
+  // Pre-compute lookup maps to avoid repeated searches
+  const messageIndexMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    chatMessages.forEach((msg: any, index: number) => {
+      if (msg?.id) {
+        map.set(msg.id, index);
+      }
+    });
+    return map;
+  }, [chatMessages]);
+
+  const messageTimeMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    chatMessages.forEach((msg: any) => {
+      if (msg?.id && msg?.createdAt) {
+        map.set(msg.id, new Date(msg.createdAt).getTime());
+      }
+    });
+    return map;
+  }, [chatMessages]);
 
   const [isTyping, setIsTyping] = React.useState(false);
   const [typingUsers, setTypingUsers] = React.useState<string[]>([]);
-  const [members, setMembers] = React.useState<Member[]>([]);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const fetchMembers = async (groupId: string) => {
-    try {
-      const res = await getGroupMembers(groupId);
-      setMembers(res);
-    } catch (err) {
-      console.error("❌ Failed to fetch members:", err);
-    }
-  };
+  // Helper function để tính toán những người đã xem tin nhắn
+  const getSeenBy = React.useCallback(
+    (messageId: string, isMine: boolean): Participant[] => {
+      if (!isMine || !participants || participants.length === 0) {
+        return [];
+      }
+
+      const currentMessageIndex = messageIndexMap.get(messageId);
+      if (currentMessageIndex === undefined) return [];
+
+      const currentMessageTime = messageTimeMap.get(messageId) ?? 0;
+
+      // Tìm những người đã xem tin nhắn này
+      // Ưu tiên so sánh theo index (do mảng đã được sắp xếp)
+      // Chỉ hiển thị avatar dưới đúng tin nhắn mà participant đã xem (lastSeenMessageId === messageId)
+      // Nếu không tìm thấy index tương ứng (tin nhắn chưa nằm trong batch hiện tại),
+      // fallback sang timestamp `lastSeenAt` để so sánh chính xác hơn
+      const seen = participants
+        .filter((participant: Participant) => {
+          // Bỏ qua chính người gửi
+          if (participant.id === currentUserId) return false;
+
+          // Nếu không có lastSeenMessageId, chưa xem
+          if (!participant.lastSeenMessageId) {
+            return false;
+          }
+
+          // Ưu tiên so sánh theo index
+          const lastSeenMessageId = participant.lastSeenMessageId;
+
+          if (lastSeenMessageId) {
+            const lastSeenIndex = messageIndexMap.get(lastSeenMessageId);
+
+            // Hiển thị avatar chỉ khi participant đã xem đúng tin nhắn này
+            if (lastSeenIndex !== undefined) {
+              return lastSeenIndex === currentMessageIndex;
+            }
+
+            // Nếu tin nhắn đó không còn trong danh sách hiện tại, nhưng ID vẫn trùng
+            // thì kiểm tra trực tiếp ID
+            if (lastSeenMessageId === messageId) {
+              return true;
+            }
+          }
+
+          // Nếu không tìm thấy index và không có ID phù hợp,
+          // fallback sang compare theo thời gian lastSeenAt (nếu có)
+          if (participant.lastSeenAt) {
+            const lastSeenTime = new Date(participant.lastSeenAt).getTime();
+            // Chỉ xem như đã đọc nếu thời điểm đọc nằm trong khoảng ngay sau tin nhắn này
+            // (giả định người dùng đọc đến tin nhắn này và chưa chắc đã đọc tin tiếp theo)
+            return Math.abs(lastSeenTime - currentMessageTime) < 5000; // 5s tolerance
+          }
+
+          return false;
+        })
+        .slice(0, 3); // Chỉ hiển thị tối đa 3 người
+
+      return seen;
+    },
+    [participants, messageIndexMap, messageTimeMap, currentUserId]
+  );
 
   React.useEffect(() => {
     if (!selectedConversation) return;
@@ -55,9 +133,12 @@ export default function Info() {
       })
     );
 
-    if (selectedConversation.type === "group") {
-      fetchMembers(selectedConversation.id);
-    }
+    // Fetch participants để lấy lastSeenMessageId
+    dispatch(
+      setParticipantsRequest({
+        conversationId: selectedConversation.id,
+      })
+    );
 
     return () => {
       socket.emit("leaveConversation", {
@@ -115,37 +196,6 @@ export default function Info() {
     };
   }, [selectedConversation]);
 
-  // React.useEffect(() => {
-  //   if (!chatMessages || chatMessages.length === 0) return;
-
-  //   const myMessages: any = chatMessages.filter(
-  //     (m: any) => m.sender?.id === currentUserId
-  //   );
-
-  //   if (myMessages.length === 0) {
-  //     dispatch(setLastReadMessageIdRequest(null));
-  //     return;
-  //   }
-
-  //   const unreadMyMessages: any = myMessages.filter((m: any) => !m.isRead);
-
-  //   if (unreadMyMessages.length > 0) {
-  //     const firstUnread = unreadMyMessages[0] as any;
-  //     const index = myMessages.findIndex((m: any) => m.id === firstUnread.id);
-
-  //     if (index > 0) {
-  //       dispatch(setLastReadMessageIdRequest(myMessages[index - 1].id));
-  //       return;
-  //     }
-
-  //     dispatch(setLastReadMessageIdRequest(null));
-  //     return;
-  //   }
-
-  //   // Không có tin chưa đọc => tin cuối của mình đã đọc
-  //   dispatch(setLastReadMessageIdRequest(myMessages[myMessages.length - 1].id));
-  // }, [selectedConversation]);
-
   return (
     <div
       className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-3 bg-transparent "
@@ -168,7 +218,8 @@ export default function Info() {
             !isMine &&
             (selectedConversation?.type === "group" || chatMessages.length > 1);
 
-          const isLastRead = msg.id === lastReadMessageId;
+          // Tính toán những người đã xem tin nhắn này
+          const seenBy = getSeenBy(msg.id, isMine);
 
           return (
             <div
@@ -239,36 +290,37 @@ export default function Info() {
                     </div>
                   )}
                 </div>
-                {/* -------------------------------------------------------- */}
 
                 {/* ------------------ PRIVATE – avatar đã đọc ------------------ */}
                 {isMine &&
-                  isLastRead &&
+                  seenBy.length > 0 &&
                   selectedConversation?.type === "private" && (
                     <div className="mt-1 self-end">
-                      <UserAvatar src={selectedConversation.avatar} size={18} />
+                      <UserAvatar
+                        src={
+                          seenBy[0]?.avatarUrl ||
+                          selectedConversation.avatar ||
+                          "/default-avatar.jpg"
+                        }
+                        size={18}
+                      />
                     </div>
                   )}
 
                 {/* ------------------ GROUP – nhiều avatar đã đọc ------------------ */}
                 {isMine &&
-                  isLastRead &&
-                  selectedConversation?.type === "group" &&
-                  Array.isArray(msg.readBy) &&
-                  msg.readBy.length > 0 && (
+                  seenBy.length > 0 &&
+                  selectedConversation?.type === "group" && (
                     <div className="flex mt-1 -space-x-2 self-end">
-                      {msg.readBy.slice(0, 3).map((memberId: string) => {
-                        const member = members.find(
-                          (m: Member) => m.id === memberId
-                        );
-                        return (
+                      {seenBy
+                        
+                        .map((participant: Participant) => (
                           <UserAvatar
-                            key={memberId}
-                            src={member?.avatarUrl}
+                            key={participant.id || participant.userId}
+                            src={participant.avatarUrl || "/default-avatar.jpg"}
                             size={18}
                           />
-                        );
-                      })}
+                        ))}
                     </div>
                   )}
               </div>
@@ -279,13 +331,15 @@ export default function Info() {
         {typingUsers.length > 0 && (
           <div className="flex items-end gap-2 justify-start">
             {/* Avatar của tối đa 2 người đang typing */}
-            {typingUsers.slice(0, 2).map((userId) => {
-              const member = members.find((m) => m.id === userId);
+            {typingUsers.slice(0, 2).map((oderId) => {
+              const typingParticipant = participants.find(
+                (p) => p.userId === oderId
+              );
 
               return (
                 <UserAvatar
-                  key={userId}
-                  src={member?.avatarUrl || "/default-avatar.png"}
+                  key={oderId}
+                  src={typingParticipant?.avatarUrl || "/default-avatar.jpg"}
                   size={28}
                 />
               );
@@ -303,7 +357,6 @@ export default function Info() {
         <ChatScrollHandler
           userId={currentUserId!}
           latestMsg={chatMessages[chatMessages.length - 1]}
-          lastReadMessageId={lastReadMessageId}
           containerRef={containerRef}
           chatMessages={chatMessages}
           selectedConversation={selectedConversation}
