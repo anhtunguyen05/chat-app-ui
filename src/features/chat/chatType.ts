@@ -27,6 +27,16 @@ export interface User {
   avatarUrl: string;
 }
 
+export interface Participant {
+  id: string;
+  userId: string;
+  nickname?: string;
+  name?: string;
+  avatarUrl?: string;
+  lastSeenMessageId?: string | null;
+  lastSeenAt?: Date;
+}
+
 export interface Message {
   id: string;
   sender: User;
@@ -50,6 +60,7 @@ export interface ChatState {
   hasMore: boolean;
   onlineList: string[];
   lastReadMessageId: string | null;
+  participants: Participant[];
 }
 
 

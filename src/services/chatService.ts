@@ -13,6 +13,13 @@ export async function getConversations(): Promise<Object[]> {
   return res.data.data;
 }
 
+export async function getConversationParticipants(
+  conversationId: string
+): Promise<Object[]> {
+  const res = await api.get(`/conversations/${conversationId}/participants`);
+  return res.data;
+}
+
 export async function getConversation(
   conversationId: string,
   page = 1,

@@ -11,7 +11,6 @@ import { markMessagesAsRead } from "@/services/chatService";
 interface ChatScrollHandlerProps {
   userId: string;
   latestMsg: any;
-  lastReadMessageId: string | null;
   containerRef: React.RefObject<HTMLDivElement | null>;
   chatMessages: any[];
   selectedConversation: Conversation | null;
@@ -23,7 +22,6 @@ interface ChatScrollHandlerProps {
 export default function ChatScrollHandler({
   userId,
   latestMsg,
-  lastReadMessageId,
   containerRef,
   chatMessages,
   selectedConversation,

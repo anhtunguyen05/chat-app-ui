@@ -24,9 +24,15 @@ import {
   setOnlineListRequest,
   setOnlineList,
   setHasMore,
+  setParticipantsRequest,
+  setParticipants,
 } from "./chatSlice";
-import { Conversation, Message } from "@/features/chat/chatType";
-import { getConversation, getConversations } from "@/services/chatService";
+import { Conversation, Message, Participant } from "@/features/chat/chatType";
+import {
+  getConversation,
+  getConversations,
+  getConversationParticipants,
+} from "@/services/chatService";
 
 function* handleSetConversations(action: PayloadAction<void>) {
   try {
@@ -135,6 +141,27 @@ function* handleSetOnlineList(action: PayloadAction<string[]>) {
   }
 }
 
+function* handleSetParticipants(
+  action: PayloadAction<{ conversationId: string }>
+): Generator<Effect, void, any> {
+  try {
+    const { conversationId } = action.payload;
+    const response: any = yield call(
+      getConversationParticipants,
+      conversationId
+    );
+
+    // API có thể trả về dữ liệu trong response.data hoặc trực tiếp
+    const participants: Participant[] = Array.isArray(response)
+      ? response
+      : response?.data || response || [];
+
+    yield put(setParticipants(participants));
+  } catch (error: any) {
+    console.error("❌ Failed to fetch participants:", error.message || error);
+  }
+}
+
 export default function* chatSaga() {
   yield takeLatest(setConversationsRequest.type, handleSetConversations);
   yield takeLatest(
@@ -145,10 +172,7 @@ export default function* chatSaga() {
     addOrUpdateConversationRequest.type,
     handleAddOrUpdateConversation
   );
-  yield takeLatest(
-    addPendingMessageRequest.type,
-    handleAddPendingMessage
-  );
+  yield takeLatest(addPendingMessageRequest.type, handleAddPendingMessage);
   yield takeLatest(
     setLastReadMessageIdRequest.type,
     handleSetLastReadMessageId
@@ -161,4 +185,5 @@ export default function* chatSaga() {
   yield takeLatest(fetchMessagesRequest.type, handleFetchMessages);
   yield takeLatest(addMessageRequest.type, handleAddMessage);
   yield takeLatest(setOnlineListRequest.type, handleSetOnlineList);
+  yield takeLatest(setParticipantsRequest.type, handleSetParticipants);
 }

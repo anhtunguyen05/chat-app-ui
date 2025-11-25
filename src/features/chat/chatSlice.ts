@@ -1,6 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/types/user";
-import { ChatState, Conversation, Message } from "@/features/chat/chatType";
+import {
+  ChatState,
+  Conversation,
+  Message,
+  Participant,
+} from "@/features/chat/chatType";
 import { set } from "zod";
 
 export const initialState: ChatState = {
@@ -12,6 +17,7 @@ export const initialState: ChatState = {
   hasMore: true,
   onlineList: [],
   lastReadMessageId: null,
+  participants: [],
 };
 
 const chatSlice = createSlice({
@@ -72,7 +78,6 @@ const chatSlice = createSlice({
         });
       }
 
-      // ⭐⭐⭐ SẮP XẾP LẠI SAU KHI UPDATE ⭐⭐⭐
       state.conversations.sort((a, b) => {
         return (
           new Date(b.lastMessageAt || 0).getTime() -
@@ -155,6 +160,13 @@ const chatSlice = createSlice({
     setHasMore(state, action: PayloadAction<boolean>) {
       state.hasMore = action.payload;
     },
+    setParticipantsRequest(
+      state,
+      action: PayloadAction<{ conversationId: string }>
+    ) {},
+    setParticipants(state, action: PayloadAction<Participant[]>) {
+      state.participants = action.payload;
+    },
   },
 });
 
@@ -181,6 +193,8 @@ export const {
   setOnlineListRequest,
   setOnlineList,
   setHasMore,
+  setParticipantsRequest,
+  setParticipants,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;
