@@ -28,6 +28,19 @@ export default function ChatSidebar() {
     setLoading(false);
   }, []);
 
+  // Filter conversations dựa trên activeTab
+  const filteredConversations = React.useMemo(() => {
+    switch (activeTab) {
+      case "unread":
+        return conversations.filter((conv) => !conv.isLastMessageRead);
+      case "group":
+        return conversations.filter((conv) => conv.type === "group");
+      case "all":
+      default:
+        return conversations;
+    }
+  }, [conversations, activeTab]);
+
   if (loading) return <p>Loading friends...</p>;
 
   return (
@@ -53,22 +66,29 @@ export default function ChatSidebar() {
         </MessageItem>
       </div>
       <div className="overflow-y-auto">
-        {conversations.map((conversation: Conversation) => {
-          return (
-            <ChatItem
-              key={conversation.id}
-              conversation={conversation}
-              active={
-                selectedConversation
-                  ? selectedConversation.id === conversation.id
-                  : false
-              }
-              onClick={() =>
-                dispatch(setSelectedConversationRequest(conversation))
-              }
-            />
-          );
-        })}
+        {filteredConversations.length === 0 ? (
+          <div className="text-center text-gray-400 text-sm py-8">
+            {activeTab === "unread" && "Không có tin nhắn chưa đọc"}
+            {activeTab === "group" && "Không có nhóm nào"}
+          </div>
+        ) : (
+          filteredConversations.map((conversation: Conversation) => {
+            return (
+              <ChatItem
+                key={conversation.id}
+                conversation={conversation}
+                active={
+                  selectedConversation
+                    ? selectedConversation.id === conversation.id
+                    : false
+                }
+                onClick={() =>
+                  dispatch(setSelectedConversationRequest(conversation))
+                }
+              />
+            );
+          })
+        )}
       </div>
     </div>
   );

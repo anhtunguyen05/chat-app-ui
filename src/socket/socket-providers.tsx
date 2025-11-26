@@ -7,7 +7,7 @@ import {
   addOrUpdateConversationRequest,
   addMessageRequest,
   setOnlineListRequest,
-  addPendingMessageRequest
+  addPendingMessageRequest,
 } from "@/features/chat/chatSlice";
 import { fetchPendingMessages } from "@/services/chatService";
 
@@ -23,15 +23,14 @@ export default function SocketProvider() {
     }
 
     const fetchPending = async () => {
-    const res = await fetchPendingMessages();
-    res.forEach(msg => dispatch(addPendingMessageRequest(msg)));
-  };
+      const res = await fetchPendingMessages();
+      res.forEach((msg) => dispatch(addPendingMessageRequest(msg)));
+    };
 
-  fetchPending();
+    fetchPending();
 
     // Lắng nghe tin nhắn đến
     socket.on("receiveMessage", (message) => {
-      console.log("📥 Received:", message);
       dispatch(addMessageRequest(message));
       dispatch(
         addOrUpdateConversationRequest({
@@ -43,7 +42,6 @@ export default function SocketProvider() {
 
     // Tin nhắn gửi thành công
     socket.on("messageSent", (message) => {
-      console.log("✅ Sent confirmed:", message);
       dispatch(addMessageRequest(message));
       dispatch(
         addOrUpdateConversationRequest({
@@ -54,7 +52,6 @@ export default function SocketProvider() {
     });
 
     socket.on("onlineList", (list: string[]) => {
-      console.log("📡 onlineList:", list);
       dispatch(setOnlineListRequest(list));
     });
 
