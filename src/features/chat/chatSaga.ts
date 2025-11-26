@@ -26,6 +26,8 @@ import {
   setHasMore,
   setParticipantsRequest,
   setParticipants,
+  updateParticipantSeenMessageRequest,
+  updateParticipantSeenMessage,
 } from "./chatSlice";
 import { Conversation, Message, Participant } from "@/features/chat/chatType";
 import {
@@ -162,6 +164,20 @@ function* handleSetParticipants(
   }
 }
 
+function* handleUpdateParticipantSeenMessage(
+  action: PayloadAction<{ userId: string; lastSeenMessage: string }>
+) {
+  try {
+    const { userId, lastSeenMessage } = action.payload;
+    yield put(updateParticipantSeenMessage({ userId, lastSeenMessage }));
+  } catch (error: any) {
+    console.error(
+      "❌ Failed to update participant seen message:",
+      error.message || error
+    );
+  }
+}
+
 export default function* chatSaga() {
   yield takeLatest(setConversationsRequest.type, handleSetConversations);
   yield takeLatest(
@@ -186,4 +202,8 @@ export default function* chatSaga() {
   yield takeLatest(addMessageRequest.type, handleAddMessage);
   yield takeLatest(setOnlineListRequest.type, handleSetOnlineList);
   yield takeLatest(setParticipantsRequest.type, handleSetParticipants);
+  yield takeLatest(
+    updateParticipantSeenMessageRequest.type,
+    handleUpdateParticipantSeenMessage
+  );
 }
