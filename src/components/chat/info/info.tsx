@@ -10,6 +10,7 @@ import {
   fetchMessagesRequest,
   setLastReadMessageIdRequest,
   setParticipantsRequest,
+  updateParticipantSeenMessageRequest,
 } from "@/features/chat/chatSlice";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import ChatScrollHandler from "@/components/chat/chat-scroll-handler/chat-scroll-handler";
@@ -22,12 +23,6 @@ export default function Info() {
     (state) => state.chat
   );
 
-  // Debug: Log participants khi thay đổi
-  React.useEffect(() => {
-    if (participants && participants.length > 0) {
-      console.log("👥 Participants loaded:", participants);
-    }
-  }, [participants]);
   const chatMessages = useAppSelector((state) => state.chat.messages) || [];
 
   // Pre-compute lookup maps to avoid repeated searches
@@ -57,9 +52,11 @@ export default function Info() {
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Helper function để tính toán những người đã xem tin nhắn
+  // Trong group: hiển thị avatar đã xem cho cả tin nhắn của mình và người khác
+  // Trong private: chỉ hiển thị cho tin nhắn của mình
   const getSeenBy = React.useCallback(
-    (messageId: string, isMine: boolean): Participant[] => {
-      if (!isMine || !participants || participants.length === 0) {
+    (messageId: string, isMine: boolean, senderId?: string): Participant[] => {
+      if (!participants || participants.length === 0) {
         return [];
       }
 
@@ -75,8 +72,11 @@ export default function Info() {
       // fallback sang timestamp `lastSeenAt` để so sánh chính xác hơn
       const seen = participants
         .filter((participant: Participant) => {
-          // Bỏ qua chính người gửi
+          // Bỏ qua chính mình (người đang xem)
           if (participant.id === currentUserId) return false;
+
+          // Bỏ qua người gửi tin nhắn (không hiện avatar đã xem của chính người gửi)
+          if (senderId && participant.id === senderId) return false;
 
           // Nếu không có lastSeenMessageId, chưa xem
           if (!participant.lastSeenMessageId) {
@@ -133,7 +133,6 @@ export default function Info() {
       })
     );
 
-    // Fetch participants để lấy lastSeenMessageId
     dispatch(
       setParticipantsRequest({
         conversationId: selectedConversation.id,
@@ -187,14 +186,39 @@ export default function Info() {
       }
     };
 
+    const handleMessageRead = ({
+      conversationId,
+      userId,
+      lastSeenMessage,
+    }: {
+      conversationId: string;
+      userId: string;
+      lastSeenMessage: string;
+    }) => {
+      // Chỉ xử lý nếu là conversation đang mở
+      if (conversationId !== selectedConversation.id) return;
+
+      // Không cập nhật cho chính mình
+      if (userId === currentUserId) return;
+
+      dispatch(
+        updateParticipantSeenMessageRequest({
+          userId,
+          lastSeenMessage,
+        })
+      );
+    };
+
     socket.on("typing", handleTyping);
     socket.on("stopTyping", handleStopTyping);
+    socket.on("messageRead", handleMessageRead);
 
     return () => {
       socket.off("typing", handleTyping);
       socket.off("stopTyping", handleStopTyping);
+      socket.off("messageRead", handleMessageRead);
     };
-  }, [selectedConversation]);
+  }, [selectedConversation, currentUserId, dispatch]);
 
   return (
     <div
@@ -219,7 +243,7 @@ export default function Info() {
             (selectedConversation?.type === "group" || chatMessages.length > 1);
 
           // Tính toán những người đã xem tin nhắn này
-          const seenBy = getSeenBy(msg.id, isMine);
+          const seenBy = getSeenBy(msg.id, isMine, msg.sender?.id);
 
           return (
             <div
@@ -308,19 +332,16 @@ export default function Info() {
                   )}
 
                 {/* ------------------ GROUP – nhiều avatar đã đọc ------------------ */}
-                {isMine &&
-                  seenBy.length > 0 &&
+                {seenBy.length > 0 &&
                   selectedConversation?.type === "group" && (
                     <div className="flex mt-1 -space-x-2 self-end">
-                      {seenBy
-                        
-                        .map((participant: Participant) => (
-                          <UserAvatar
-                            key={participant.id || participant.userId}
-                            src={participant.avatarUrl || "/default-avatar.jpg"}
-                            size={18}
-                          />
-                        ))}
+                      {seenBy.map((participant: Participant) => (
+                        <UserAvatar
+                          key={participant.id || participant.userId}
+                          src={participant.avatarUrl || "/default-avatar.jpg"}
+                          size={18}
+                        />
+                      ))}
                     </div>
                   )}
               </div>

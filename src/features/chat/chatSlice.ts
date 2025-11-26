@@ -167,6 +167,21 @@ const chatSlice = createSlice({
     setParticipants(state, action: PayloadAction<Participant[]>) {
       state.participants = action.payload;
     },
+    updateParticipantSeenMessageRequest(
+      state,
+      action: PayloadAction<{ userId: string; lastSeenMessage: string }>
+    ) {},
+    updateParticipantSeenMessage(
+      state,
+      action: PayloadAction<{ userId: string; lastSeenMessage: string }>
+    ) {
+      const { userId, lastSeenMessage } = action.payload;
+      const participant = state.participants.find((p) => p.id === userId);
+      if (participant) {
+        participant.lastSeenMessageId = lastSeenMessage;
+        participant.lastSeenAt = new Date();
+      }
+    },
   },
 });
 
@@ -195,6 +210,8 @@ export const {
   setHasMore,
   setParticipantsRequest,
   setParticipants,
+  updateParticipantSeenMessageRequest,
+  updateParticipantSeenMessage,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;
