@@ -31,6 +31,7 @@ import {
   Type,
   Send,
   CirclePlus,
+  CircleUserRound
 } from "lucide-react";
 import { send } from "process";
 
@@ -62,6 +63,7 @@ export const Icons = {
   type: Type,
   send: Send,
   circlePlus: CirclePlus,
+  circleUserRound: CircleUserRound,
 };
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
