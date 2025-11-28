@@ -11,6 +11,7 @@ export interface Conversation {
   id: string;
   type: "private" | "group";
   name: string;
+  slug?: string;
   avatar?: string;
   lastMessage?: string;
   lastMessageAt?: Date;
@@ -30,6 +31,7 @@ export interface User {
 export interface Participant {
   id: string;
   userId: string;
+  slug?: string;
   nickname?: string;
   name?: string;
   avatarUrl?: string;
