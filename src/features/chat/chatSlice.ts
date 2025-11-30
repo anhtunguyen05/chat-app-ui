@@ -18,6 +18,7 @@ export const initialState: ChatState = {
   onlineList: [],
   lastReadMessageId: null,
   participants: [],
+  searchQuery: "",
 };
 
 const chatSlice = createSlice({
@@ -182,6 +183,9 @@ const chatSlice = createSlice({
         participant.lastSeenAt = new Date();
       }
     },
+    setSearchQuery(state, action: PayloadAction<string>) {
+      state.searchQuery = action.payload;
+    },
   },
 });
 
@@ -212,6 +216,7 @@ export const {
   setParticipants,
   updateParticipantSeenMessageRequest,
   updateParticipantSeenMessage,
+  setSearchQuery,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

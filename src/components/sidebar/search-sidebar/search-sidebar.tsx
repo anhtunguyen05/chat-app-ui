@@ -2,12 +2,15 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Search } from "lucide-react";
-import { cn } from "@/lib/utils"; // shadcn helper (nếu không có có thể bỏ)
+import { cn } from "@/lib/utils";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { setSearchQuery } from "@/features/chat/chatSlice";
 
 export default function SearchSidebar() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const dispatch = useAppDispatch();
 
   // Đóng khi click ra ngoài
   useEffect(() => {
@@ -19,6 +22,11 @@ export default function SearchSidebar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Dispatch search query khi thay đổi
+  useEffect(() => {
+    dispatch(setSearchQuery(query));
+  }, [query, dispatch]);
 
   return (
     <div ref={ref} className="relative">
