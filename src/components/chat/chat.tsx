@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import HeaderChat from "@/components/chat/header-chat/header-chat";
-import Info from "@/components/chat/info/container-chat";
+import ContainerChat from "@/components/chat/info/container-chat";
 import InputChat from "@/components/chat/input-chat/input-chat";
 import NoChat from "@/components/chat/no-chat";
 import Information from "@/components/chat/information/information";
@@ -25,7 +25,7 @@ export default function Chat() {
             selectedConversation={selectedConversation}
             onInfoClick={() => setShowInfoPanel(!showInfoPanel)}
           />
-          <Info />
+          <ContainerChat />
           <InputChat />
         </div>
 
