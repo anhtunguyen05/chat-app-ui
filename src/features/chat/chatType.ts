@@ -63,6 +63,7 @@ export interface ChatState {
   onlineList: string[];
   lastReadMessageId: string | null;
   participants: Participant[];
+  searchQuery: string;
 }
 
 

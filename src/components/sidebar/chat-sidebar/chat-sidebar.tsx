@@ -16,7 +16,7 @@ import { Conversation } from "@/features/chat/chatType";
 
 export default function ChatSidebar() {
   const dispatch = useAppDispatch();
-  const { selectedConversation, activeTab, conversations } = useAppSelector(
+  const { selectedConversation, activeTab, conversations, searchQuery } = useAppSelector(
     (state) => state.chat
   );
   const { user } = useAppSelector((state) => state.user);
@@ -28,18 +28,33 @@ export default function ChatSidebar() {
     setLoading(false);
   }, []);
 
-  // Filter conversations dựa trên activeTab
+  // Filter conversations dựa trên activeTab và searchQuery
   const filteredConversations = React.useMemo(() => {
+    let filtered = conversations;
+
+    // Filter theo tab
     switch (activeTab) {
       case "unread":
-        return conversations.filter((conv) => !conv.isLastMessageRead);
+        filtered = filtered.filter((conv) => !conv.isLastMessageRead);
+        break;
       case "group":
-        return conversations.filter((conv) => conv.type === "group");
+        filtered = filtered.filter((conv) => conv.type === "group");
+        break;
       case "all":
       default:
-        return conversations;
+        break;
     }
-  }, [conversations, activeTab]);
+
+    // Filter theo search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((conv) =>
+        conv.name?.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [conversations, activeTab, searchQuery]);
 
   if (loading) return <p>Loading friends...</p>;
 
