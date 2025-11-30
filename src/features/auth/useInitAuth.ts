@@ -5,6 +5,7 @@ import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { finishLoading } from "./authSlice";
 import { setUser } from "@/features/user/userSlice";
 import { getCurrentUser } from "@/services/authService";
+import { connectSocket } from "@/lib/socket";
 
 export default function useInitAuth() {
   const dispatch = useAppDispatch();
@@ -14,8 +15,10 @@ export default function useInitAuth() {
       try {
         const res = await getCurrentUser();
         dispatch(setUser(res));
+        connectSocket(); // Connect socket sau khi verify user thành công
       } catch (err) {
-        console.error("Init auth failed:", err);
+        // Nếu 401 → interceptor sẽ tự động thử refresh token
+        // Nếu refresh fail → không làm gì (user chưa login)
         dispatch(finishLoading());
       }
     };

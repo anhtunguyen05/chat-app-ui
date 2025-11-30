@@ -14,7 +14,7 @@ import TypingIndicator from "./typing-indicator";
 import { useMessageSeenBy } from "./hooks/useMessageSeenBy";
 import { useSocketEvents } from "./hooks/useSocketEvents";
 
-export default function Info() {
+export default function ContainerChat() {
   const dispatch = useAppDispatch();
   const currentUserId = useAppSelector((state) => state.user.user?.id);
   const { selectedConversation, hasMore, page, participants } = useAppSelector(

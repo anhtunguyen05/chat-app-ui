@@ -18,7 +18,11 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { loginRequest, registerRequest, loginWithGoogleRequest } from "@/features/auth/authSlice";
+import {
+  loginRequest,
+  registerRequest,
+  loginWithGoogleRequest,
+} from "@/features/auth/authSlice";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -69,7 +73,9 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
   // Hàm xử lý login bằng Google
   async function handleGoogleLogin(credentialResponse: any) {
     try {
-      dispatch(loginWithGoogleRequest({ token: credentialResponse.credential }));
+      dispatch(
+        loginWithGoogleRequest({ token: credentialResponse.credential })
+      );
       router.push("/chat");
     } catch (error) {
       console.error("Google login error:", error);

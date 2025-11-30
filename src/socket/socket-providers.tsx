@@ -16,6 +16,8 @@ export default function SocketProvider() {
   const user = useAppSelector((state) => state.user.user);
 
   useEffect(() => {
+    if (!user) return;
+
     if (user?.id) {
       socket.emit("join", { userId: user.id });
       socket.emit("userOnline", user?.id);
