@@ -26,11 +26,13 @@ interface CallModalProps {
 export default function CallModal({ caller, onAccept, onReject }: CallModalProps) {
   const [callStatus, setCallStatus] = useState<"incoming" | "connecting" | "connected">("incoming");
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [actualCallType, setActualCallType] = useState<"voice" | "video">(caller.callType);
+  const [remoteCallType, setRemoteCallType] = useState<"voice" | "video">(caller.callType);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const remotePeerId = caller.from || caller.to || "";
 
   const { isMuted, isVideoOff, toggleMute, toggleVideo, setLocalStream } = useCallControls({
-    callType: caller.callType,
+    callType: actualCallType,
     remotePeerId,
   });
 
@@ -64,13 +66,24 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
         setCallStatus("connected");
       }
     },
+    onCallTypeChange: (newType) => {
+      console.log("📢 My call type changed to:", newType);
+      setActualCallType(newType);
+    },
   });
 
   useEffect(() => {
     // Socket event listeners
-    socket.on("call:accepted", (data: { answer: RTCSessionDescriptionInit }) => {
-      console.log("📞 Call accepted");
+    socket.on("call:accepted", (data: { answer: RTCSessionDescriptionInit; actualCallType?: "voice" | "video" }) => {
+      console.log("📞 Call accepted", data);
       setCallStatus("connecting");
+      
+      // Update remote call type if provided
+      if (data.actualCallType) {
+        console.log("📢 Remote peer is using:", data.actualCallType);
+        setRemoteCallType(data.actualCallType);
+      }
+      
       handleAnswer(data.answer);
     });
 
@@ -131,7 +144,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     setCallStatus("connecting");
     
     try {
-      const stream = await createAnswer(caller.offer!);
+      const stream = await createAnswer(caller.offer!, caller.callType);
       setLocalStream(stream);
       setCallStatus("connected");
       onAccept();
@@ -156,18 +169,18 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       {/* Hidden audio element for remote audio */}
       <audio ref={remoteAudioRef} autoPlay playsInline />
       
-      <div className="relative w-full max-w-4xl h-[600px] bg-gradient-to-br from-violet-900 to-purple-900 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-4xl h-[600px] bg-transparent from-violet-900 to-purple-900 rounded-2xl shadow-2xl overflow-hidden">
         {/* Video Display */}
         <VideoDisplay
           localStream={localStream.current}
           remoteStream={remoteStream}
-          callType={caller.callType}
+          callType={actualCallType}
           isConnected={callStatus === "connected"}
         />
 
         {/* Voice Call or Incoming Call UI */}
-        {(caller.callType === "voice" || callStatus !== "connected") && (
-          <div className="flex flex-col items-center justify-center h-full p-8">
+        {((actualCallType === "voice" && remoteCallType === "voice") || callStatus !== "connected") && (
+          <div className="flex flex-col items-center justify-center h-full p-8 bg-gradient-to-br from-violet-900 to-purple-900">
             <UserAvatar
               src={caller.callerAvatar}
               className="w-32 h-32 mb-6 ring-4 ring-white/30"
@@ -181,8 +194,22 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
                   {caller.callType === "video" ? "Cuộc gọi video" : "Cuộc gọi thoại"} đến...
                 </>
               )}
-              {callStatus === "connecting" && "Đang kết nối..."}
-              {callStatus === "connected" && "Đang trong cuộc gọi"}
+              {callStatus === "connecting" && "\u0110ang k\u1ebft n\u1ed1i..."}
+              {callStatus === "connected" && (
+                <>
+                  \u0110ang trong cu\u1ed9c g\u1ecdi
+                  {actualCallType !== caller.callType && (
+                    <span className="block text-sm text-yellow-300 mt-2">
+                      (Đang dùng {actualCallType === "voice" ? "thoại" : "video"})
+                    </span>
+                  )}
+                  {actualCallType === "video" && remoteCallType === "voice" && (
+                    <span className="block text-sm text-yellow-300 mt-2">
+                      (\u0110\u1ed1i ph\u01b0\u01a1ng ch\u1ec9 d\u00f9ng tho\u1ea1i)
+                    </span>
+                  )}
+                </>
+              )}
             </p>
 
             {/* Call Duration */}
@@ -193,7 +220,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
         {/* Control Buttons */}
         <CallControls
           callStatus={callStatus}
-          callType={caller.callType}
+          callType={actualCallType}
           isMuted={isMuted}
           isVideoOff={isVideoOff}
           onAccept={handleAcceptCall}

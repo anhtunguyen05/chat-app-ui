@@ -7,6 +7,7 @@ interface UsePeerConnectionProps {
   remotePeerId: string;
   onRemoteStream: (stream: MediaStream) => void;
   onConnectionStateChange: (state: RTCPeerConnectionState) => void;
+  onCallTypeChange?: (actualType: "voice" | "video") => void;
 }
 
 export function usePeerConnection({
@@ -15,6 +16,7 @@ export function usePeerConnection({
   remotePeerId,
   onRemoteStream,
   onConnectionStateChange,
+  onCallTypeChange,
 }: UsePeerConnectionProps) {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
@@ -56,12 +58,34 @@ export function usePeerConnection({
     [remotePeerId]
   );
 
-  const getUserMedia = useCallback(async () => {
-    return await navigator.mediaDevices.getUserMedia({
-      video: callType === "video",
-      audio: true,
-    });
-  }, [callType]);
+  const getUserMedia = useCallback(async (requestedCallType: "voice" | "video") => {
+    try {
+      // Try to get video if requested
+      if (requestedCallType === "video") {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        console.log("✅ Got video stream");
+        return { stream, actualCallType: "video" as const };
+      }
+    } catch (error) {
+      console.warn("⚠️ Cannot access video, falling back to audio only:", error);
+    }
+
+    // Fallback to audio only
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: true,
+      });
+      console.log("✅ Got audio-only stream");
+      return { stream, actualCallType: "voice" as const };
+    } catch (error) {
+      console.error("❌ Cannot access audio:", error);
+      throw error;
+    }
+  }, []);
 
   const setupPeerConnection = useCallback(
     async (stream: MediaStream) => {
@@ -99,8 +123,14 @@ export function usePeerConnection({
   const createOffer = useCallback(async () => {
     try {
       console.log("🎥 Getting user media for caller...");
-      const stream = await getUserMedia();
+      const { stream, actualCallType } = await getUserMedia(callType);
       console.log("✅ Got user media for caller", stream.getTracks().map((t) => t.kind));
+
+      // Notify if call type changed
+      if (actualCallType !== callType && onCallTypeChange) {
+        console.log(`📢 Call type changed from ${callType} to ${actualCallType}`);
+        onCallTypeChange(actualCallType);
+      }
 
       localStream.current = stream;
       await setupPeerConnection(stream);
@@ -113,7 +143,7 @@ export function usePeerConnection({
         socket.emit("call:initiate", {
           to: remotePeerId,
           conversationId,
-          callType,
+          callType: actualCallType,
           offer,
         });
       }
@@ -124,14 +154,20 @@ export function usePeerConnection({
       console.error("❌ Error creating offer:", error);
       throw error;
     }
-  }, [callType, conversationId, remotePeerId, getUserMedia, setupPeerConnection]);
+  }, [callType, conversationId, remotePeerId, getUserMedia, setupPeerConnection, onCallTypeChange]);
 
   const createAnswer = useCallback(
-    async (offer: RTCSessionDescriptionInit) => {
+    async (offer: RTCSessionDescriptionInit, requestedCallType: "voice" | "video") => {
       try {
         console.log("🎥 Getting user media for callee...");
-        const stream = await getUserMedia();
+        const { stream, actualCallType } = await getUserMedia(requestedCallType);
         console.log("✅ Got user media for callee", stream.getTracks().map((t) => t.kind));
+
+        // Notify if call type changed
+        if (actualCallType !== requestedCallType && onCallTypeChange) {
+          console.log(`📢 Call type changed from ${requestedCallType} to ${actualCallType}`);
+          onCallTypeChange(actualCallType);
+        }
 
         localStream.current = stream;
         await setupPeerConnection(stream);
@@ -148,6 +184,7 @@ export function usePeerConnection({
             to: remotePeerId,
             conversationId,
             answer,
+            actualCallType,
           });
         }
 
@@ -157,7 +194,7 @@ export function usePeerConnection({
         throw error;
       }
     },
-    [conversationId, remotePeerId, getUserMedia, setupPeerConnection]
+    [conversationId, remotePeerId, getUserMedia, setupPeerConnection, onCallTypeChange]
   );
 
   const handleAnswer = useCallback(async (answer: RTCSessionDescriptionInit) => {
