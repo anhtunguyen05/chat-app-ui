@@ -71,7 +71,7 @@ export default function ContainerChat() {
 
   return (
     <div
-      className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-3 bg-transparent "
+      className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-3 bg-transparent"
       ref={containerRef}
     >
       <div className="flex flex-col justify-end min-h-full space-y-3">
