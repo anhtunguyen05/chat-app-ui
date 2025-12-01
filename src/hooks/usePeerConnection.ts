@@ -234,14 +234,19 @@ export function usePeerConnection({
   }, []);
 
   const cleanup = useCallback(() => {
-    if (localStream.current) {
-      localStream.current.getTracks().forEach((track) => track.stop());
-    }
+    console.log("🧹 Cleaning up peer connection...");
+    
+    // Don't stop tracks here - let useCallControls handle it
+    // This is because the stream reference is shared
+    
     if (peerConnection.current) {
+      console.log("🔌 Closing peer connection");
       peerConnection.current.close();
     }
+    
     localStream.current = null;
     peerConnection.current = null;
+    console.log("✅ Peer connection cleanup complete");
   }, []);
 
   return {
