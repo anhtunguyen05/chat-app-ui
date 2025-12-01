@@ -5,16 +5,90 @@ import { Icon } from "@/components/icon/icon";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import { Conversation } from "@/features/chat/chatType";
 import { timeFormat } from "@/utils/formatter";
+import { socket } from "@/lib/socket";
+import { is } from "date-fns/locale";
 
 interface HeaderChatProps {
   selectedConversation: Conversation;
   onInfoClick: () => void;
 }
 
-export default function HeaderChat({ selectedConversation, onInfoClick }: HeaderChatProps) {
+export default function HeaderChat({
+  selectedConversation,
+  onInfoClick,
+}: HeaderChatProps) {
   const isOnline = useAppSelector((state) =>
     state.chat.onlineList.includes(selectedConversation.id)
   );
+  const currentUser = useAppSelector((state) => state.user.user);
+  const participants = useAppSelector((state) => state.chat.participants);
+
+  // Lấy participant của người nhận (không phải current user) cho call 1-1
+  const getReceiverParticipantId = () => {
+    if (selectedConversation.type === "private") {
+      const receiver = participants.find((p) => p.id !== currentUser?.id);
+      return receiver?.id || selectedConversation.id;
+    }
+    return selectedConversation.id;
+  };
+
+  const handleVoiceCall = async () => {
+    // if (!isOnline) {
+    //   alert("Người dùng không online");
+    //   return;
+    // }
+
+    try {
+      const receiverParticipantId = getReceiverParticipantId();
+
+      console.log("📤 Initiating voice call", {
+        receiverParticipantId,
+      });
+
+      // Hiển thị modal cho người gọi - modal sẽ tạo peer connection
+      if ((window as any).initiateCall) {
+        (window as any).initiateCall({
+          to: receiverParticipantId,
+          conversationId: selectedConversation.id,
+          callType: "voice",
+          callerName: selectedConversation.name,
+          callerAvatar: selectedConversation.avatar,
+        });
+      }
+    } catch (error) {
+      console.error("Error initiating voice call:", error);
+      alert("Không thể bắt đầu cuộc gọi");
+    }
+  };
+
+  const handleVideoCall = async () => {
+    // if (!isOnline) {
+    //   alert("Người dùng không online");
+    //   return;
+    // }
+
+    try {
+      const receiverParticipantId = getReceiverParticipantId();
+
+      console.log("📤 Initiating video call", {
+        receiverParticipantId,
+      });
+
+      // Hiển thị modal cho người gọi - modal sẽ tạo peer connection
+      if ((window as any).initiateCall) {
+        (window as any).initiateCall({
+          to: receiverParticipantId,
+          conversationId: selectedConversation.id,
+          callType: "video",
+          callerName: selectedConversation.name,
+          callerAvatar: selectedConversation.avatar,
+        });
+      }
+    } catch (error) {
+      console.error("Error initiating video call:", error);
+      alert("Không thể bắt đầu cuộc gọi");
+    }
+  };
 
   const formatLastSeen = (time: any) => {
     if (!time) return "";
@@ -45,11 +119,13 @@ export default function HeaderChat({ selectedConversation, onInfoClick }: Header
           name="phone"
           className="w-5 h-5 text-violet-600"
           buttonClassName="bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-80 w-10 h-10"
+          onClick={handleVoiceCall}
         ></Icon>
         <Icon
           name="video"
           className="w-5 h-5 text-violet-600"
           buttonClassName="bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-80 w-10 h-10"
+          onClick={handleVideoCall}
         ></Icon>
         <Icon
           name="info"
