@@ -12,7 +12,39 @@ export function useCallControls({ callType, remotePeerId }: UseCallControlsProps
   const localStreamRef = useRef<MediaStream | null>(null);
 
   const setLocalStream = useCallback((stream: MediaStream | null) => {
+    console.log("🎬 Setting local stream in controls:", stream ? "stream provided" : "clearing stream");
     localStreamRef.current = stream;
+  }, []);
+
+  const cleanup = useCallback(() => {
+    console.log("🧹 Cleaning up call controls...");
+    console.log("🔍 Current localStreamRef:", localStreamRef.current);
+    
+    if (localStreamRef.current) {
+      const tracks = localStreamRef.current.getTracks();
+      console.log("🛑 Stopping tracks from controls:", tracks.length);
+      
+      tracks.forEach((track) => {
+        console.log(`🛑 Controls stopping ${track.kind} track, readyState: ${track.readyState}`);
+        
+        try {
+          track.stop();
+          console.log(`✅ Track ${track.kind} stopped, new readyState: ${track.readyState}`);
+          
+          // Verify the track actually stopped
+          if (track.readyState !== 'ended') {
+            console.warn(`⚠️ Track ${track.kind} readyState is still "${track.readyState}", may be held by another source`);
+          }
+        } catch (error) {
+          console.error(`❌ Error stopping ${track.kind} track:`, error);
+        }
+      });
+    } else {
+      console.warn("⚠️ localStreamRef is null, cannot stop tracks!");
+    }
+    
+    localStreamRef.current = null;
+    console.log("✅ Call controls cleanup complete");
   }, []);
 
   const toggleMute = useCallback(() => {
@@ -51,5 +83,6 @@ export function useCallControls({ callType, remotePeerId }: UseCallControlsProps
     toggleMute,
     toggleVideo,
     setLocalStream,
+    cleanup,
   };
 }

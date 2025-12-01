@@ -25,67 +25,56 @@ export default function CallControls({
 }: CallControlsProps) {
   if (callStatus === "incoming") {
     return (
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-6">
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
         {/* Accept Button */}
-        <button
+        <Icon 
+          name="phone" 
+          className="w-14 h-14 p-3.5 rounded-full bg-green-500 hover:bg-green-600 backdrop-blur-sm shadow-lg transition-all hover:scale-110 border border-green-500 text-white cursor-pointer" 
           onClick={onAccept}
-          className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center shadow-lg transition-all hover:scale-110"
-        >
-          <Icon name="phone" className="w-8 h-8 text-white" />
-        </button>
+        />
 
         {/* Reject Button */}
-        <button
+        <Icon 
+          name="phone" 
+          className="w-14 h-14 p-3.5 rounded-full bg-red-500 hover:bg-red-600 backdrop-blur-sm shadow-lg transition-all hover:scale-110 border border-red-500 text-white rotate-[135deg] cursor-pointer" 
           onClick={onReject}
-          className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg transition-all hover:scale-110"
-        >
-          <Icon name="phone" className="w-8 h-8 text-white rotate-[135deg]" />
-        </button>
+        />
       </div>
     );
   }
 
   return (
-    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-6">
+    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
       {/* Mute Button */}
-      <button
-        onClick={onToggleMute}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 ${
+      <Icon
+        name={isMuted ? "micOff" : "mic"}
+        className={`w-12 h-12 p-3 rounded-full shadow-lg transition-all hover:scale-110 backdrop-blur-sm border cursor-pointer ${
           isMuted
-            ? "bg-red-500 hover:bg-red-600"
-            : "bg-white/20 hover:bg-white/30"
+            ? "bg-white/10 hover:bg-white/20 border-red-400/50 text-red-400"
+            : "bg-white/10 hover:bg-white/20 border-white/20 text-white"
         }`}
-      >
-        <Icon
-          name={isMuted ? "phoneIncoming" : "mic"}
-          className="w-6 h-6 text-white"
-        />
-      </button>
+        onClick={onToggleMute}
+      />
 
       {/* Video Toggle (only for video calls) */}
       {callType === "video" && (
-        <button
-          onClick={onToggleVideo}
-          className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 ${
+        <Icon
+          name={isVideoOff ? "cameraOff" : "camera"}
+          className={`w-12 h-12 p-3 rounded-full shadow-lg transition-all hover:scale-110 backdrop-blur-sm border cursor-pointer ${
             isVideoOff
-              ? "bg-red-500 hover:bg-red-600"
-              : "bg-white/20 hover:bg-white/30"
+              ? "bg-white/10 hover:bg-white/20 border-red-400/50 text-red-400"
+              : "bg-white/10 hover:bg-white/20 border-white/20 text-white"
           }`}
-        >
-          <Icon
-            name={isVideoOff ? "phoneIncoming" : "video"}
-            className="w-6 h-6 text-white"
-          />
-        </button>
+          onClick={onToggleVideo}
+        />
       )}
 
       {/* End Call Button */}
-      <button
+      <Icon 
+        name="phone" 
+        className="w-14 h-14 p-3 rounded-full bg-red-500 hover:bg-red-600 backdrop-blur-sm shadow-lg transition-all hover:scale-110 border border-red-500 text-white rotate-[135deg] cursor-pointer" 
         onClick={onEndCall}
-        className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg transition-all hover:scale-110"
-      >
-        <Icon name="phone" className="w-8 h-8 text-white rotate-[135deg]" />
-      </button>
+      />
     </div>
   );
 }

@@ -31,7 +31,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const remotePeerId = caller.from || caller.to || "";
 
-  const { isMuted, isVideoOff, toggleMute, toggleVideo, setLocalStream } = useCallControls({
+  const { isMuted, isVideoOff, toggleMute, toggleVideo, setLocalStream, cleanup: cleanupControls } = useCallControls({
     callType: actualCallType,
     remotePeerId,
   });
@@ -92,13 +92,53 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     });
 
     socket.on("call:ended", () => {
+      console.log("📞 Call ended, cleaning up...");
+      
+      // Cleanup remote stream
+      if (remoteStream) {
+        console.log("🛑 Stopping remote stream tracks");
+        remoteStream.getTracks().forEach(track => {
+          console.log(`🛑 Stopping remote ${track.kind} track`);
+          track.stop();
+        });
+      }
+      
+      // Clear audio element
+      if (remoteAudioRef.current) {
+        console.log("🛑 Clearing remote audio element");
+        remoteAudioRef.current.srcObject = null;
+      }
+      
       cleanup();
+      cleanupControls();
       onReject();
     });
 
     socket.on("call:rejected", () => {
-      alert("Cuộc gọi bị từ chối");
+      console.log("📞 Call rejected, cleaning up...");
+      
+      // Cleanup remote stream
+      if (remoteStream) {
+        console.log("🛑 Stopping remote stream tracks");
+        remoteStream.getTracks().forEach(track => {
+          console.log(`🛑 Stopping remote ${track.kind} track`);
+          track.stop();
+        });
+      }
+      
+      // Clear audio element
+      if (remoteAudioRef.current) {
+        console.log("🛑 Clearing remote audio element");
+        remoteAudioRef.current.srcObject = null;
+      }
+      
+      // Only show alert if call was rejected before connecting (incoming call)
+      if (callStatus === "incoming" || callStatus === "connecting") {
+        alert("Cuộc gọi bị từ chối");
+      }
+      
       cleanup();
+      cleanupControls();
       onReject();
     });
 
@@ -124,7 +164,25 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       socket.off("call:rejected");
       socket.off("call:video-toggled");
       socket.off("call:audio-toggled");
+      console.log("🧹 Component unmounting, cleaning up...");
+      
+      // Cleanup remote stream
+      if (remoteStream) {
+        console.log("🛑 Stopping remote stream tracks");
+        remoteStream.getTracks().forEach(track => {
+          console.log(`🛑 Stopping remote ${track.kind} track`);
+          track.stop();
+        });
+      }
+      
+      // Clear audio element
+      if (remoteAudioRef.current) {
+        console.log("🛑 Clearing remote audio element");
+        remoteAudioRef.current.srcObject = null;
+      }
+      
       cleanup();
+      cleanupControls();
     };
   }, []);
 
@@ -156,11 +214,32 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
   };
 
   const handleEndCall = () => {
+    console.log("📞 Ending call...");
+    
+    // Cleanup remote stream first
+    if (remoteStream) {
+      console.log("🛑 Stopping remote stream tracks");
+      remoteStream.getTracks().forEach(track => {
+        console.log(`🛑 Stopping remote ${track.kind} track`);
+        track.stop();
+      });
+    }
+    
+    // Clear audio element
+    if (remoteAudioRef.current) {
+      console.log("🛑 Clearing remote audio element");
+      remoteAudioRef.current.srcObject = null;
+    }
+    
+    // Cleanup local streams
+    cleanupControls();
+    cleanup();
+    
     socket.emit("call:end", {
       to: remotePeerId,
       conversationId: caller.conversationId,
     });
-    cleanup();
+    
     onReject();
   };
 
@@ -180,7 +259,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
 
         {/* Voice Call or Incoming Call UI */}
         {((actualCallType === "voice" && remoteCallType === "voice") || callStatus !== "connected") && (
-          <div className="flex flex-col items-center justify-center h-full p-8 bg-gradient-to-br from-violet-900 to-purple-900">
+          <div className="flex flex-col items-center justify-center h-full p-8 bg-gradient-to-br from-gray-800 to-gray-900">
             <UserAvatar
               src={caller.callerAvatar}
               className="w-32 h-32 mb-6 ring-4 ring-white/30"

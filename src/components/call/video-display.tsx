@@ -57,6 +57,14 @@ export default function VideoDisplay({
         });
       }
     }
+
+    // Cleanup: Clear srcObject when component unmounts or stream changes
+    return () => {
+      if (localVideoRef.current) {
+        console.log("🧹 Clearing local video srcObject");
+        localVideoRef.current.srcObject = null;
+      }
+    };
   }, [localStream, hasLocalVideo, isConnected]); // Add isConnected to re-trigger when component renders
 
   useEffect(() => {
@@ -92,7 +100,15 @@ export default function VideoDisplay({
         });
       }
     }
-  }, [remoteStream, hasRemoteVideo, isConnected]); // Add isConnected to re-trigger when component renders
+
+    // Cleanup: Clear srcObject when component unmounts or stream changes
+    return () => {
+      if (remoteVideoRef.current) {
+        console.log("🧹 Clearing remote video srcObject");
+        remoteVideoRef.current.srcObject = null;
+      }
+    };
+  }, [remoteStream, hasRemoteVideo, isConnected]);
 
   // Chỉ hiển thị nếu connected và có ít nhất một video stream
   console.log("🖼️ VideoDisplay render:", { 
@@ -119,7 +135,7 @@ export default function VideoDisplay({
         />
       ) : hasLocalVideo ? (
         /* Nếu không có remote video, hiển thị placeholder */
-        <div className="w-full h-full bg-gradient-to-br from-violet-900 to-purple-900 flex items-center justify-center">
+        <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
           <p className="text-white/60 text-lg">Đối phương chưa bật video</p>
         </div>
       ) : null}
