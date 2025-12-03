@@ -31,6 +31,8 @@ export default function ChatScrollHandler({
   const dispatch = useAppDispatch();
   const prevScrollHeight = React.useRef(0);
 
+  const prevMessageCount = React.useRef(0);
+
   const waitForImages = (container: HTMLElement) =>
     new Promise<void>((resolve) => {
       const imgs = container.querySelectorAll("img");
@@ -74,17 +76,20 @@ export default function ChatScrollHandler({
     const isAtBottom = checkIsAtBottom();
 
     if (isAtBottom) {
-      console.log("📬 Reached bottom of chat.");
-      markMessagesAsRead(userId, selectedConversation.id);
+      // Chỉ gọi markMessagesAsRead nếu tin nhắn cuối chưa được đánh dấu đã đọc
+      if (!selectedConversation.isLastMessageRead) {
+        console.log("📬 Reached bottom of chat, marking as read.");
+        markMessagesAsRead(userId, selectedConversation.id);
 
-      dispatch(
-        updateMessageReadStatusRequest({
-          conversationId: selectedConversation.id,
-        })
-      );
+        dispatch(
+          updateMessageReadStatusRequest({
+            conversationId: selectedConversation.id,
+          })
+        );
+      }
     }
 
-    // Load more messages khi scroll lên đầu (chỉ khi còn hasMore)
+    // Load more messages khi scroll lên đầu (chỉ khi còn hasMore và chưa đang load)
     if (hasMore && container.scrollTop <= 50) {
       prevScrollHeight.current = container.scrollHeight;
       dispatch(
@@ -96,7 +101,7 @@ export default function ChatScrollHandler({
     }
   }, [checkIsAtBottom, selectedConversation, userId, dispatch, hasMore, page]);
 
-  const handleScroll = useThrottle(handleScrollCallback, 300);
+  const handleScroll = useThrottle(handleScrollCallback, 100);
 
   React.useEffect(() => {
     const container = containerRef.current;
@@ -111,15 +116,20 @@ export default function ChatScrollHandler({
 
     const container = containerRef.current;
     prevScrollHeight.current = 0;
+    prevMessageCount.current = 0;
 
     // Đợi tin nhắn render xong rồi mới cuộn xuống đáy
     waitForImages(container).then(() => {
       container.scrollTop = container.scrollHeight;
-      
+
       // Kiểm tra isAtBottom sau khi scroll tự động
       setTimeout(() => {
         const isAtBottom = checkIsAtBottom();
-        if (isAtBottom && selectedConversation) {
+        if (
+          isAtBottom &&
+          selectedConversation &&
+          !selectedConversation.isLastMessageRead
+        ) {
           console.log("📬 Initial scroll to bottom, marking as read.");
           markMessagesAsRead(userId, selectedConversation.id);
           dispatch(
@@ -130,34 +140,62 @@ export default function ChatScrollHandler({
         }
       }, 100);
     });
-  }, [selectedConversation?.id, checkIsAtBottom, selectedConversation, userId, dispatch]);
+  }, [selectedConversation?.id]);
 
   React.useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    const messageCountChanged =
+      chatMessages.length !== prevMessageCount.current;
+    const isNewMessage = chatMessages.length > prevMessageCount.current;
+    const messagesAdded = chatMessages.length - prevMessageCount.current;
+
+    prevMessageCount.current = chatMessages.length;
+
+    // Nếu đang load thêm tin nhắn cũ (scroll lên)
     if (prevScrollHeight.current > 0) {
-      const newScrollHeight = container.scrollHeight;
-      container.scrollTop = newScrollHeight - prevScrollHeight.current;
-    } else {
-      container.scrollTop = container.scrollHeight;
+      console.log("📜 Restoring scroll position after loading more messages");
+      // Đợi DOM render xong
+      setTimeout(() => {
+        const newScrollHeight = container.scrollHeight;
+        const scrollDiff = newScrollHeight - prevScrollHeight.current;
+        container.scrollTop = scrollDiff + 100; // Thêm 100px để tránh trigger ngay
+
+        // Reset flags sau một khoảng delay nhỏ để tránh trigger ngay lập tức
+        setTimeout(() => {
+          prevScrollHeight.current = 0;
+        }, 100);
+      }, 100);
+      return;
     }
 
-    // Kiểm tra isAtBottom sau khi scroll tự động
-    // Sử dụng setTimeout để đảm bảo DOM đã cập nhật
-    setTimeout(() => {
-      const isAtBottom = checkIsAtBottom();
-      if (isAtBottom && selectedConversation) {
-        console.log("📬 Auto-scrolled to bottom, marking as read.");
-        markMessagesAsRead(userId, selectedConversation.id);
-        dispatch(
-          updateMessageReadStatusRequest({
-            conversationId: selectedConversation.id,
-          })
-        );
-      }
-    }, 100);
-  }, [chatMessages, checkIsAtBottom, selectedConversation, userId, dispatch]);
+    // Nếu là tin nhắn mới (ở cuối) - chỉ scroll xuống khi user đang ở bottom
+    if (isNewMessage && messagesAdded > 0 && prevScrollHeight.current === 0) {
+      const wasAtBottom = checkIsAtBottom();
+
+      // Scroll xuống đáy
+      container.scrollTop = container.scrollHeight;
+
+      // Chỉ mark as read nếu user đang ở bottom
+      setTimeout(() => {
+        const isAtBottom = checkIsAtBottom();
+        if (
+          isAtBottom &&
+          selectedConversation &&
+          !selectedConversation.isLastMessageRead
+        ) {
+          console.log("📬 New message received, marking as read.");
+          markMessagesAsRead(userId, selectedConversation.id);
+          dispatch(
+            updateMessageReadStatusRequest({
+              conversationId: selectedConversation.id,
+            })
+          );
+        }
+      }, 100);
+    }
+  }, [chatMessages.length]);
 
   return null; // Component này chỉ quản lý logic, không render gì
 }

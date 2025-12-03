@@ -122,11 +122,6 @@ export default function SocketProvider() {
             // Accept sẽ được xử lý trong CallModal
           }}
           onReject={() => {
-            socket.emit("call:reject", { 
-              to: incomingCall.from,
-              conversationId: incomingCall.conversationId,
-              reason: "declined"
-            });
             setIncomingCall(null);
           }}
         />
@@ -140,10 +135,6 @@ export default function SocketProvider() {
             // Nút accept không hiển thị cho outgoing call
           }}
           onReject={() => {
-            socket.emit("call:end", { 
-              to: outgoingCall.to,
-              conversationId: outgoingCall.conversationId
-            });
             setOutgoingCall(null);
           }}
         />

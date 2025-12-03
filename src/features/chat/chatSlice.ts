@@ -56,7 +56,7 @@ const chatSlice = createSlice({
 
       if (existing) {
         // Cập nhật conversation cũ
-        existing.lastMessage = message.text!;
+        existing.lastMessage = message.text || "Call";
         existing.lastMessageAt = message.createdAt
           ? new Date(message.createdAt)
           : now;
@@ -64,13 +64,24 @@ const chatSlice = createSlice({
 
         existing.isLastMessageRead = isMine;
         existing.isRead = isMine;
+
+        // Cập nhật selectedConversation nếu là conversation đang mở
+        if (state.selectedConversation?.id === message.conversation) {
+          state.selectedConversation.lastMessage = message.text || "Call";
+          state.selectedConversation.lastMessageAt = message.createdAt
+            ? new Date(message.createdAt)
+            : now;
+          state.selectedConversation.updatedAt = now;
+          state.selectedConversation.isLastMessageRead = isMine;
+          state.selectedConversation.isRead = isMine;
+        }
       } else {
         // Tạo mới nếu chưa tồn tại
         state.conversations.push({
           id: message.conversation, // ID phải là conversationId, không phải messageId
           type: message.group ? "group" : "private",
           name: "",
-          lastMessage: message.text!,
+          lastMessage: message.text || "Call",
           lastMessageAt: message.createdAt ? new Date(message.createdAt) : now,
           updatedAt: now,
           createdAt: now,
@@ -110,6 +121,11 @@ const chatSlice = createSlice({
 
       // Set cho sidebar
       conv.isLastMessageRead = true;
+
+      // Cập nhật selectedConversation nếu là conversation đang mở
+      if (state.selectedConversation?.id === conversationId) {
+        state.selectedConversation.isLastMessageRead = true;
+      }
     },
 
     setActiveTabRequest(state, action: PayloadAction<string>) {},
@@ -127,11 +143,26 @@ const chatSlice = createSlice({
       state.messages = action.payload;
     },
     appendMessages(state, action: PayloadAction<Object[]>) {
-      state.messages = [...action.payload, ...state.messages]; // thêm vào đầu
+      const newMessages = action.payload;
+      const existingIds = new Set(state.messages.map((m: any) => m.id));
+
+      // Chỉ thêm những message chưa tồn tại
+      const uniqueNewMessages = newMessages.filter(
+        (m: any) => !existingIds.has(m.id)
+      );
+
+      state.messages = [...uniqueNewMessages, ...state.messages]; // thêm vào đầu
     },
     addMessageRequest(state, action: PayloadAction<Object>) {},
     addMessage: (state, action: PayloadAction<Object>) => {
-      state.messages.push(action.payload);
+      const msg = action.payload as any;
+
+      // Kiểm tra xem message đã tồn tại chưa
+      if (state.messages.some((m: any) => m.id === msg.id)) {
+        return; // Bỏ qua nếu đã tồn tại
+      }
+
+      state.messages.push(msg);
     },
     addPendingMessageRequest(state, action: PayloadAction<any>) {},
     addPendingMessage: (state, action: PayloadAction<any>) => {
