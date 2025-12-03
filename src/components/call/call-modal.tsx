@@ -30,6 +30,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
   const [remoteCallType, setRemoteCallType] = useState<"voice" | "video">(caller.callType);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const remotePeerId = caller.from || caller.to || "";
+  const hasEndedCall = useRef(false); // Flag để tránh emit call:end nhiều lần
 
   const { isMuted, isVideoOff, toggleMute, toggleVideo, setLocalStream, cleanup: cleanupControls } = useCallControls({
     callType: actualCallType,
@@ -92,7 +93,8 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     });
 
     socket.on("call:ended", () => {
-      console.log("📞 Call ended, cleaning up...");
+      console.log("📞 Call ended by remote, cleaning up...");
+      hasEndedCall.current = true; // Đánh dấu đã end để tránh emit lại
       
       // Cleanup remote stream
       if (remoteStream) {
@@ -116,6 +118,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
 
     socket.on("call:rejected", () => {
       console.log("📞 Call rejected, cleaning up...");
+      hasEndedCall.current = true; // Đánh dấu đã reject để tránh emit lại
       
       // Cleanup remote stream
       if (remoteStream) {
@@ -164,7 +167,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       socket.off("call:rejected");
       socket.off("call:video-toggled");
       socket.off("call:audio-toggled");
-      console.log("🧹 Component unmounting, cleaning up...");
+      console.log("🧹 Component unmounting, cleaning up streams...");
       
       // Cleanup remote stream
       if (remoteStream) {
@@ -183,6 +186,8 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       
       cleanup();
       cleanupControls();
+      
+      // KHÔNG emit call:end ở đây vì đã được xử lý trong handleEndCall hoặc nhận từ socket
     };
   }, []);
 
@@ -214,7 +219,13 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
   };
 
   const handleEndCall = () => {
+    if (hasEndedCall.current) {
+      console.log("⚠️ Call already ended, skipping...");
+      return;
+    }
+    
     console.log("📞 Ending call...");
+    hasEndedCall.current = true;
     
     // Cleanup remote stream first
     if (remoteStream) {

@@ -78,5 +78,11 @@ export const useSocketEvents = (
       socket.off("stopTyping", handleStopTyping);
       socket.off("messageRead", handleMessageRead);
     };
-  }, [selectedConversation, currentUserId, dispatch, setIsTyping, setTypingUsers]);
+  }, [
+    selectedConversation,
+    currentUserId,
+    dispatch,
+    setIsTyping,
+    setTypingUsers,
+  ]);
 };
