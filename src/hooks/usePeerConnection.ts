@@ -20,12 +20,28 @@ export function usePeerConnection({
 }: UsePeerConnectionProps) {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
+  const hasCleanedUp = useRef(false);
 
   const handleRemoteTrack = useCallback(
     (event: RTCTrackEvent) => {
-      console.log("📥 Received remote track:", event.track.kind);
+      console.log("📥 Received remote track:", {
+        kind: event.track.kind,
+        enabled: event.track.enabled,
+        readyState: event.track.readyState,
+        muted: event.track.muted,
+        streamId: event.streams[0]?.id,
+        streamActive: event.streams[0]?.active
+      });
+      
       if (event.streams[0]) {
+        console.log("📥 Remote stream tracks:", event.streams[0].getTracks().map(t => ({
+          kind: t.kind,
+          enabled: t.enabled,
+          readyState: t.readyState
+        })));
         onRemoteStream(event.streams[0]);
+      } else {
+        console.error("❌ No stream in track event!");
       }
     },
     [onRemoteStream]
@@ -58,31 +74,54 @@ export function usePeerConnection({
     [remotePeerId]
   );
 
-  const getUserMedia = useCallback(async (requestedCallType: "voice" | "video") => {
+  const getUserMedia = useCallback(async (requestedCallType: "voice" | "video", allowReceiveOnly: boolean = false) => {
     try {
       // Try to get video if requested
       if (requestedCallType === "video") {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
-        console.log("✅ Got video stream");
-        return { stream, actualCallType: "video" as const };
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 1280, height: 720 },
+            audio: { echoCancellation: true, noiseSuppression: true },
+          });
+          console.log("✅ Got video stream");
+          return { stream, actualCallType: "video" as const };
+        } catch (videoError: any) {
+          console.warn("⚠️ Cannot access video:", videoError.name, videoError.message);
+          if (allowReceiveOnly) {
+            console.log("👂 Device busy, using receive-only mode (no camera/mic sent)");
+            // Create empty stream for receive-only mode
+            return { stream: new MediaStream(), actualCallType: "voice" as const, receiveOnly: true };
+          }
+          // Try audio-only fallback
+        }
       }
     } catch (error) {
-      console.warn("⚠️ Cannot access video, falling back to audio only:", error);
+      // If it's a critical error and receive-only is not allowed, rethrow
+      if (!allowReceiveOnly && error instanceof Error && error.message.includes("đang được sử dụng")) {
+        throw error;
+      }
     }
 
     // Fallback to audio only
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: false,
-        audio: true,
+        audio: { echoCancellation: true, noiseSuppression: true },
       });
       console.log("✅ Got audio-only stream");
       return { stream, actualCallType: "voice" as const };
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Cannot access audio:", error);
+      
+      if (allowReceiveOnly) {
+        console.log("👂 Device busy, using receive-only mode (no audio sent)");
+        // Create empty stream for receive-only mode
+        return { stream: new MediaStream(), actualCallType: "voice" as const, receiveOnly: true };
+      }
+      
+      if (error.name === "NotReadableError" || error.name === "TrackStartError") {
+        throw new Error("Microphone đang được sử dụng bởi ứng dụng khác. Vui lòng đóng các tab/ứng dụng khác đang dùng microphone.");
+      }
       throw error;
     }
   }, []);
@@ -91,11 +130,18 @@ export function usePeerConnection({
     async (stream: MediaStream) => {
       console.log("🔧 Setting up peer connection...");
 
-      const configuration = {
+      const configuration: RTCConfiguration = {
         iceServers: [
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:stun1.l.google.com:19302" },
+          // Free TURN server for testing
+          {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
         ],
+        iceCandidatePoolSize: 10,
       };
 
       peerConnection.current = new RTCPeerConnection(configuration);
@@ -111,6 +157,21 @@ export function usePeerConnection({
       peerConnection.current.onconnectionstatechange = handleConnectionStateChange;
       peerConnection.current.oniceconnectionstatechange = handleIceConnectionStateChange;
       peerConnection.current.onicecandidate = handleIceCandidateEvent;
+      
+      // Debug: Log peer connection state every 2 seconds
+      const debugInterval = setInterval(() => {
+        if (peerConnection.current) {
+          console.log("🔍 Peer connection status:", {
+            signalingState: peerConnection.current.signalingState,
+            iceConnectionState: peerConnection.current.iceConnectionState,
+            connectionState: peerConnection.current.connectionState,
+            senders: peerConnection.current.getSenders().length,
+            receivers: peerConnection.current.getReceivers().length
+          });
+        } else {
+          clearInterval(debugInterval);
+        }
+      }, 2000);
     },
     [
       handleRemoteTrack,
@@ -133,6 +194,7 @@ export function usePeerConnection({
       }
 
       localStream.current = stream;
+      hasCleanedUp.current = false; // Reset cleanup flag
       await setupPeerConnection(stream);
 
       if (peerConnection.current) {
@@ -140,6 +202,19 @@ export function usePeerConnection({
         await peerConnection.current.setLocalDescription(offer);
 
         console.log("📤 Sending offer to receiver...");
+        console.log("🔍 Offer details:", {
+          type: offer.type,
+          sdpLength: offer.sdp?.length,
+          hasSdp: !!offer.sdp
+        });
+        console.log("🔍 Local tracks in offer:", 
+          peerConnection.current.getSenders().map(s => ({
+            kind: s.track?.kind,
+            enabled: s.track?.enabled,
+            readyState: s.track?.readyState
+          }))
+        );
+        
         socket.emit("call:initiate", {
           to: remotePeerId,
           conversationId,
@@ -160,8 +235,12 @@ export function usePeerConnection({
     async (offer: RTCSessionDescriptionInit, requestedCallType: "voice" | "video") => {
       try {
         console.log("🎥 Getting user media for callee...");
-        const { stream, actualCallType } = await getUserMedia(requestedCallType);
-        console.log("✅ Got user media for callee", stream.getTracks().map((t) => t.kind));
+        // Allow receive-only mode for callee (bên nhận chỉ cần nghe/xem)
+        const { stream, actualCallType, receiveOnly } = await getUserMedia(requestedCallType, true);
+        console.log("✅ Got user media for callee", {
+          tracks: stream.getTracks().map((t) => t.kind),
+          receiveOnly: receiveOnly || false
+        });
 
         // Notify if call type changed
         if (actualCallType !== requestedCallType && onCallTypeChange) {
@@ -170,6 +249,7 @@ export function usePeerConnection({
         }
 
         localStream.current = stream;
+        hasCleanedUp.current = false; // Reset cleanup flag
         await setupPeerConnection(stream);
 
         if (peerConnection.current) {
@@ -180,6 +260,20 @@ export function usePeerConnection({
           await peerConnection.current.setLocalDescription(answer);
 
           console.log("📤 Sending answer to caller...");
+          console.log("🔍 Answer details:", {
+            type: answer.type,
+            sdpLength: answer.sdp?.length,
+            hasSdp: !!answer.sdp,
+            receiveOnly: receiveOnly || false
+          });
+          console.log("🔍 Local tracks in answer:", 
+            peerConnection.current.getSenders().map(s => ({
+              kind: s.track?.kind,
+              enabled: s.track?.enabled,
+              readyState: s.track?.readyState
+            }))
+          );
+          
           socket.emit("call:accept", {
             to: remotePeerId,
             conversationId,
@@ -200,11 +294,15 @@ export function usePeerConnection({
   const handleAnswer = useCallback(async (answer: RTCSessionDescriptionInit) => {
     console.log("📞 Call accepted, setting remote answer");
     console.log("🔍 Current signaling state:", peerConnection.current?.signalingState);
+    console.log("🔍 Answer SDP:", answer);
 
     try {
       if (peerConnection.current?.signalingState === "have-local-offer") {
         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
         console.log("✅ Remote description set, call connected");
+        console.log("🔍 Updated signaling state:", peerConnection.current?.signalingState);
+        console.log("🔍 Connection state:", peerConnection.current?.connectionState);
+        console.log("🔍 ICE connection state:", peerConnection.current?.iceConnectionState);
       } else {
         console.warn(
           "⚠️ Cannot set remote description, wrong state:",
@@ -234,10 +332,15 @@ export function usePeerConnection({
   }, []);
 
   const cleanup = useCallback(() => {
+    if (hasCleanedUp.current) {
+      console.log("⏭️ Peer connection already cleaned up, skipping...");
+      return;
+    }
+    
     console.log("🧹 Cleaning up peer connection...");
     
-    // Don't stop tracks here - let useCallControls handle it
-    // This is because the stream reference is shared
+    // DON'T stop tracks here - let useCallControls handle it
+    // to avoid double-stopping which can cause issues
     
     if (peerConnection.current) {
       console.log("🔌 Closing peer connection");
@@ -246,6 +349,7 @@ export function usePeerConnection({
     
     localStream.current = null;
     peerConnection.current = null;
+    hasCleanedUp.current = true;
     console.log("✅ Peer connection cleanup complete");
   }, []);
 

@@ -10,13 +10,13 @@ import {
   addPendingMessageRequest,
 } from "@/features/chat/chatSlice";
 import { fetchPendingMessages } from "@/services/chatService";
-import CallModal from "@/components/call/call-modal";
+import { openCallWindow, closeCallWindow, isCallWindowOpen } from "@/utils/callWindow";
+import IncomingCallModal from "@/components/call/incoming-call-modal";
 
 export default function SocketProvider() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.user.user);
   const [incomingCall, setIncomingCall] = useState<any>(null);
-  const [outgoingCall, setOutgoingCall] = useState<any>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -63,28 +63,29 @@ export default function SocketProvider() {
     // Nhận cuộc gọi đến
     socket.on("call:incoming", (data) => {
       console.log("📥 Incoming call:", data);
+      // Show modal in main window first
       setIncomingCall(data);
     });
 
     // Cuộc gọi bị từ chối
     socket.on("call:rejected", (data) => {
       console.log("❌ Call rejected:", data);
-      alert("Cuộc gọi bị từ chối");
       setIncomingCall(null);
-      setOutgoingCall(null);
+      alert("Cuộc gọi bị từ chối");
+      closeCallWindow();
     });
 
     // Cuộc gọi được chấp nhận - forward đến CallModal
     socket.on("call:accepted", (data) => {
       console.log("✅ Call accepted (forwarding to modal):", data);
-      // Event này sẽ được CallModal lắng nghe
+      // Event này sẽ được CallModal lắng nghe trong popup window
     });
 
     // Cuộc gọi kết thúc
     socket.on("call:ended", (data) => {
       console.log("📞 Call ended:", data);
       setIncomingCall(null);
-      setOutgoingCall(null);
+      closeCallWindow();
     });
 
     // Cleanup khi unmount
@@ -104,7 +105,11 @@ export default function SocketProvider() {
   useEffect(() => {
     (window as any).initiateCall = (callData: any) => {
       console.log("📤 Initiating call:", callData);
-      setOutgoingCall(callData);
+      if (!isCallWindowOpen()) {
+        openCallWindow(callData);
+      } else {
+        alert("Bạn đang trong cuộc gọi khác");
+      }
     };
 
     return () => {
@@ -112,31 +117,40 @@ export default function SocketProvider() {
     };
   }, []);
 
+  const handleAcceptCall = () => {
+    if (!incomingCall) return;
+    
+    console.log("✅ Accepting incoming call");
+    if (!isCallWindowOpen()) {
+      openCallWindow(incomingCall);
+      setIncomingCall(null); // Close modal
+    } else {
+      alert("Bạn đang trong cuộc gọi khác");
+    }
+  };
+
+  const handleRejectCall = () => {
+    if (!incomingCall) return;
+    
+    console.log("❌ Rejecting incoming call");
+    socket.emit("call:reject", {
+      to: incomingCall.from,
+      conversationId: incomingCall.conversationId,
+    });
+    setIncomingCall(null);
+  };
+
   return (
     <>
-      {/* Incoming call modal */}
       {incomingCall && (
-        <CallModal
-          caller={incomingCall}
-          onAccept={() => {
-            // Accept sẽ được xử lý trong CallModal
+        <IncomingCallModal
+          caller={{
+            callerName: incomingCall.callerName,
+            callerAvatar: incomingCall.callerAvatar,
+            callType: incomingCall.callType,
           }}
-          onReject={() => {
-            setIncomingCall(null);
-          }}
-        />
-      )}
-
-      {/* Outgoing call modal */}
-      {outgoingCall && (
-        <CallModal
-          caller={outgoingCall}
-          onAccept={() => {
-            // Nút accept không hiển thị cho outgoing call
-          }}
-          onReject={() => {
-            setOutgoingCall(null);
-          }}
+          onAccept={handleAcceptCall}
+          onReject={handleRejectCall}
         />
       )}
     </>

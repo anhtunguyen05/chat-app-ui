@@ -39,7 +39,7 @@ export default function VideoDisplay({
 
   // Separate effect to set srcObject when both stream and ref are ready
   useEffect(() => {
-    if (localVideoRef.current && localStream && hasLocalVideo && isConnected) {
+    if (localVideoRef.current && localStream && hasLocalVideo) {
       console.log("🎥 Setting local video srcObject (ref is ready)");
       localVideoRef.current.srcObject = localStream;
       
@@ -62,10 +62,22 @@ export default function VideoDisplay({
     return () => {
       if (localVideoRef.current) {
         console.log("🧹 Clearing local video srcObject");
+        const stream = localVideoRef.current.srcObject as MediaStream;
         localVideoRef.current.srcObject = null;
+        
+        // Immediately stop all tracks after clearing srcObject
+        if (stream) {
+          console.log("🛑 Stopping tracks immediately after clearing srcObject");
+          stream.getTracks().forEach(track => {
+            if (track.readyState !== 'ended') {
+              console.log(`🛑 VideoDisplay stopping ${track.kind} track`);
+              track.stop();
+            }
+          });
+        }
       }
     };
-  }, [localStream, hasLocalVideo, isConnected]); // Add isConnected to re-trigger when component renders
+  }, [localStream, hasLocalVideo]); // Remove isConnected dependency
 
   useEffect(() => {
     if (remoteStream) {
@@ -87,7 +99,7 @@ export default function VideoDisplay({
 
   // Separate effect to set srcObject when both stream and ref are ready
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream && hasRemoteVideo && isConnected) {
+    if (remoteVideoRef.current && remoteStream && hasRemoteVideo) {
       console.log("📺 Setting remote video srcObject (ref is ready)");
       remoteVideoRef.current.srcObject = remoteStream;
       
@@ -108,17 +120,16 @@ export default function VideoDisplay({
         remoteVideoRef.current.srcObject = null;
       }
     };
-  }, [remoteStream, hasRemoteVideo, isConnected]);
+  }, [remoteStream, hasRemoteVideo]); // Remove isConnected dependency
 
-  // Chỉ hiển thị nếu connected và có ít nhất một video stream
+  // Hiển thị ngay khi có stream (không cần đợi connected)
   console.log("🖼️ VideoDisplay render:", { 
-    isConnected, 
     hasLocalVideo, 
     hasRemoteVideo,
-    willRender: isConnected && (hasLocalVideo || hasRemoteVideo)
+    willRender: hasLocalVideo || hasRemoteVideo
   });
   
-  if (!isConnected || (!hasLocalVideo && !hasRemoteVideo)) {
+  if (!hasLocalVideo && !hasRemoteVideo) {
     return null;
   }
 
