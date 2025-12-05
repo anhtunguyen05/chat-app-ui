@@ -10,13 +10,20 @@ export function useCallControls({ callType, remotePeerId }: UseCallControlsProps
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const hasCleanedUp = useRef(false);
 
   const setLocalStream = useCallback((stream: MediaStream | null) => {
     console.log("🎬 Setting local stream in controls:", stream ? "stream provided" : "clearing stream");
     localStreamRef.current = stream;
+    hasCleanedUp.current = false; // Reset flag when new stream is set
   }, []);
 
   const cleanup = useCallback(() => {
+    if (hasCleanedUp.current) {
+      console.log("⏭️ Call controls already cleaned up, skipping...");
+      return;
+    }
+    
     console.log("🧹 Cleaning up call controls...");
     console.log("🔍 Current localStreamRef:", localStreamRef.current);
     
@@ -27,23 +34,33 @@ export function useCallControls({ callType, remotePeerId }: UseCallControlsProps
       tracks.forEach((track) => {
         console.log(`🛑 Controls stopping ${track.kind} track, readyState: ${track.readyState}`);
         
-        try {
-          track.stop();
-          console.log(`✅ Track ${track.kind} stopped, new readyState: ${track.readyState}`);
-          
-          // Verify the track actually stopped
-          if (track.readyState !== 'ended') {
-            console.warn(`⚠️ Track ${track.kind} readyState is still "${track.readyState}", may be held by another source`);
+        if (track.readyState !== 'ended') {
+          try {
+            // Stop the track
+            track.stop();
+            console.log(`✅ Track ${track.kind} stopped, new readyState: ${track.readyState}`);
+            
+            // Remove track from stream to fully release it
+            localStreamRef.current?.removeTrack(track);
+            console.log(`🗑️ Track ${track.kind} removed from stream`);
+          } catch (error) {
+            console.error(`❌ Error stopping ${track.kind} track:`, error);
           }
-        } catch (error) {
-          console.error(`❌ Error stopping ${track.kind} track:`, error);
+        } else {
+          console.log(`⏭️ Track ${track.kind} already ended, skipping`);
         }
       });
+      
+      // Verify stream is inactive
+      console.log("🔍 Stream active status:", localStreamRef.current.active);
+      
+      // Clear the stream reference
+      localStreamRef.current = null;
     } else {
       console.warn("⚠️ localStreamRef is null, cannot stop tracks!");
     }
     
-    localStreamRef.current = null;
+    hasCleanedUp.current = true;
     console.log("✅ Call controls cleanup complete");
   }, []);
 
