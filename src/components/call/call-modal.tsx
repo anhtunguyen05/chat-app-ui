@@ -51,62 +51,51 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     conversationId: caller.conversationId,
     remotePeerId,
     onRemoteStream: (stream) => {
-      // Prevent setting the same stream multiple times (ontrack fires per track)
-      if (remoteStreamSet.current) {
-        console.log("⏭️ Remote stream already set, skipping");
-        return;
-      }
-      
-      console.log("📥 Setting remote stream", {
-        streamId: stream.id,
-        tracks: stream.getTracks().map(t => ({
-          kind: t.kind,
-          enabled: t.enabled,
-          readyState: t.readyState,
-          muted: t.muted
-        })),
-        audioRefExists: !!remoteAudioRef.current
-      });
+      if (remoteStreamSet.current) return;
       
       remoteStreamSet.current = true;
       setRemoteStream(stream);
 
-      // Wait a bit for audio element to be ready
       setTimeout(() => {
         if (remoteAudioRef.current && remoteAudioRef.current.srcObject !== stream) {
-          console.log("🔊 Setting remote audio srcObject");
           remoteAudioRef.current.srcObject = stream;
           remoteAudioRef.current.volume = 1.0;
           remoteAudioRef.current.muted = false;
-          
-          // Play will be handled by autoPlay attribute
-          console.log("🔊 Remote audio srcObject set, autoPlay will handle playback");
         }
       }, 100);
     },
     onConnectionStateChange: (state) => {
-      if (state === "connected") {
-        setCallStatus("connected");
-      }
+      if (state === "connected") setCallStatus("connected");
     },
     onCallTypeChange: (newType) => {
-      console.log("📢 My call type changed to:", newType);
       setActualCallType(newType);
     },
   });
 
+  const cleanupStreams = () => {
+    if (remoteStream) {
+      remoteStream.getTracks().forEach(track => {
+        if (track.readyState !== 'ended') {
+          track.stop();
+          remoteStream.removeTrack(track);
+        }
+      });
+      setRemoteStream(null);
+    }
+    
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = null;
+    }
+    
+    cleanupControls();
+    cleanup();
+  };
+
   useEffect(() => {
     // Socket event listeners
     socket.on("call:accepted", (data: { answer: RTCSessionDescriptionInit; actualCallType?: "voice" | "video" }) => {
-      console.log("📞 Call accepted", data);
       setCallStatus("connecting");
-      
-      // Update remote call type if provided
-      if (data.actualCallType) {
-        console.log("📢 Remote peer is using:", data.actualCallType);
-        setRemoteCallType(data.actualCallType);
-      }
-      
+      if (data.actualCallType) setRemoteCallType(data.actualCallType);
       handleAnswer(data.answer);
     });
 
@@ -115,94 +104,37 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     });
 
     socket.on("call:ended", () => {
-      console.log("📞 Call ended by remote, cleaning up...");
       hasEndedCall.current = true;
-      remoteStreamSet.current = false; // Reset flag
-      
-      // Clear local stream state FIRST
+      remoteStreamSet.current = false;
       setLocalStreamState(null);
       
       setTimeout(() => {
-        // Cleanup remote stream
-        if (remoteStream) {
-          console.log("🛑 Stopping remote stream tracks");
-          remoteStream.getTracks().forEach(track => {
-            if (track.readyState !== 'ended') {
-              console.log(`🛑 Stopping remote ${track.kind} track`);
-              track.stop();
-              remoteStream.removeTrack(track);
-            }
-          });
-          setRemoteStream(null);
-        }
-        
-        // Clear audio element
-        if (remoteAudioRef.current) {
-          console.log("🛑 Clearing remote audio element");
-          remoteAudioRef.current.srcObject = null;
-        }
-        
-        cleanupControls();
-        cleanup();
+        cleanupStreams();
         onReject();
       }, 200);
     });
 
     socket.on("call:rejected", () => {
-      console.log("📞 Call rejected, cleaning up...");
       hasEndedCall.current = true;
-      remoteStreamSet.current = false; // Reset flag
-      
-      // Clear local stream state FIRST
+      remoteStreamSet.current = false;
       setLocalStreamState(null);
       
       setTimeout(() => {
-        // Cleanup remote stream
-        if (remoteStream) {
-          console.log("🛑 Stopping remote stream tracks");
-          remoteStream.getTracks().forEach(track => {
-            if (track.readyState !== 'ended') {
-              console.log(`🛑 Stopping remote ${track.kind} track`);
-              track.stop();
-              remoteStream.removeTrack(track);
-            }
-          });
-          setRemoteStream(null);
-        }
-        
-        // Clear audio element
-        if (remoteAudioRef.current) {
-          console.log("🛑 Clearing remote audio element");
-          remoteAudioRef.current.srcObject = null;
-        }
-        
-        // Only show alert if call was rejected before connecting (incoming call)
+        cleanupStreams();
         if (callStatus === "incoming" || callStatus === "connecting") {
           alert("Cuộc gọi bị từ chối");
         }
-        
-        cleanupControls();
-        cleanup();
         onReject();
       }, 200);
     });
 
-    socket.on("call:video-toggled", (data: { enabled: boolean }) => {
-      console.log("Remote video toggled:", data.enabled);
-    });
+    socket.on("call:video-toggled", () => {});
+    socket.on("call:audio-toggled", () => {});
 
-    socket.on("call:audio-toggled", (data: { enabled: boolean }) => {
-      console.log("Remote audio toggled:", data.enabled);
-    });
-
-    // Initialize call if caller (no offer means we're initiating)
     if (!caller.offer) {
-      console.log("📞 I am the caller, initializing peer connection...");
       setCallStatus("connecting");
       initializeCaller();
     } else {
-      console.log("📞 I am the receiver with offer, auto-accepting...");
-      // Receiver already accepted in main window modal, auto-accept here
       setCallStatus("connecting");
       handleAcceptCall();
     }
@@ -214,31 +146,8 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       socket.off("call:rejected");
       socket.off("call:video-toggled");
       socket.off("call:audio-toggled");
-      console.log("🧹 Component unmounting, cleaning up streams...");
       
-      // Cleanup remote stream
-      if (remoteStream) {
-        console.log("🛑 Stopping remote stream tracks");
-        remoteStream.getTracks().forEach(track => {
-          if (track.readyState !== 'ended') {
-            console.log(`🛑 Stopping remote ${track.kind} track`);
-            track.stop();
-            remoteStream.removeTrack(track);
-          }
-        });
-      }
-      
-      // Clear audio element
-      if (remoteAudioRef.current) {
-        console.log("🛑 Clearing remote audio element");
-        remoteAudioRef.current.srcObject = null;
-      }
-      
-      // IMPORTANT: Cleanup controls first to stop local tracks
-      cleanupControls();
-      cleanup();
-      
-      // KHÔNG emit call:end ở đây vì đã được xử lý trong handleEndCall hoặc nhận từ socket
+      cleanupStreams();
     };
   }, []);
 
@@ -255,77 +164,29 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
   };
 
   const handleAcceptCall = async () => {
-    console.log("📞 Accepting call...");
-    console.log("🔍 Caller offer:", {
-      hasOffer: !!caller.offer,
-      offerType: caller.offer?.type,
-      callType: caller.callType
-    });
     setCallStatus("connecting");
     
     try {
-      console.log("🎥 Calling createAnswer...");
       const stream = await createAnswer(caller.offer!, caller.callType);
-      console.log("✅ createAnswer successful, stream:", {
-        id: stream.id,
-        tracks: stream.getTracks().map(t => ({
-          kind: t.kind,
-          enabled: t.enabled,
-          readyState: t.readyState
-        }))
-      });
       setLocalStream(stream);
       setLocalStreamState(stream);
       setCallStatus("connected");
       onAccept();
     } catch (error) {
-      console.error("❌ Error accepting call:", error);
+      console.error("Error accepting call:", error);
       alert("Không thể truy cập camera/microphone");
       onReject();
     }
   };
 
   const handleEndCall = () => {
-    if (hasEndedCall.current) {
-      console.log("⚠️ Call already ended, skipping...");
-      return;
-    }
+    if (hasEndedCall.current) return;
     
-    console.log("📞 Ending call...");
     hasEndedCall.current = true;
-    
-    // CRITICAL: Clear local stream state FIRST to unmount VideoDisplay
-    console.log("📝 Clearing local stream state to unmount video");
     setLocalStreamState(null);
     
-    // Give VideoDisplay time to clear srcObject and stop tracks
     setTimeout(() => {
-      // Cleanup remote stream
-      if (remoteStream) {
-        console.log("🛑 Stopping remote stream tracks");
-        remoteStream.getTracks().forEach(track => {
-          if (track.readyState !== 'ended') {
-            console.log(`🛑 Stopping remote ${track.kind} track`);
-            track.stop();
-            remoteStream.removeTrack(track);
-          }
-        });
-        setRemoteStream(null);
-      }
-      
-      // Clear audio element
-      if (remoteAudioRef.current) {
-        console.log("🛑 Clearing remote audio element");
-        remoteAudioRef.current.srcObject = null;
-      }
-      
-      // IMPORTANT: Cleanup controls first to stop local tracks
-      console.log("🧹 Cleaning up controls (stops local tracks)");
-      cleanupControls();
-      
-      // Then cleanup peer connection
-      console.log("🧹 Cleaning up peer connection");
-      cleanup();
+      cleanupStreams();
       
       socket.emit("call:end", {
         to: remotePeerId,
@@ -333,7 +194,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       });
       
       onReject();
-    }, 200); // Increased delay to let browser release devices
+    }, 200);
   };
 
   return (
@@ -345,9 +206,6 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
         playsInline 
         controls={false}
         style={{ display: 'none' }}
-        onLoadedMetadata={() => console.log("🎵 Remote audio metadata loaded")}
-        onPlay={() => console.log("▶️ Remote audio playing")}
-        onError={(e) => console.error("❌ Remote audio error:", e)}
       />
       
       <div className="relative w-full max-w-4xl h-[600px] bg-transparent from-violet-900 to-purple-900 rounded-2xl shadow-2xl overflow-hidden">

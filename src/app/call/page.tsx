@@ -22,13 +22,10 @@ export default function CallPage() {
       }
     }
 
-    // Listen for messages from parent window
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === "CALL_DATA") {
-        console.log("📞 Received call data from parent:", event.data.data);
         setCallData(event.data.data);
       } else if (event.data.type === "END_CALL") {
-        console.log("📞 Received end call command from parent");
         window.close();
       }
     };
@@ -41,23 +38,16 @@ export default function CallPage() {
   }, [searchParams]);
 
   const handleAccept = () => {
-    console.log("✅ Call accepted");
-    // Notify parent window
     if (window.opener) {
       window.opener.postMessage({ type: "CALL_ACCEPTED" }, "*");
     }
   };
 
   const handleReject = () => {
-    console.log("❌ Call rejected/ended");
-    // Notify parent window
     if (window.opener) {
       window.opener.postMessage({ type: "CALL_ENDED" }, "*");
     }
-    // Close window after a short delay
-    setTimeout(() => {
-      window.close();
-    }, 100);
+    setTimeout(() => window.close(), 100);
   };
 
   if (!callData) {
