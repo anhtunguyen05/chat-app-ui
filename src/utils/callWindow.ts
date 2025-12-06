@@ -40,11 +40,8 @@ export function openCallWindow(callData: CallData): Window | null {
     status=no
   `.replace(/\s/g, '');
 
-  // Encode call data in URL
   const encodedData = encodeURIComponent(JSON.stringify(callData));
   const url = `/call?data=${encodedData}`;
-
-  console.log("🪟 Opening call window:", url);
   
   callWindow = window.open(url, "CallWindow", features);
 
@@ -70,7 +67,6 @@ export function openCallWindow(callData: CallData): Window | null {
  */
 export function closeCallWindow() {
   if (callWindow && !callWindow.closed) {
-    console.log("🪟 Closing call window");
     callWindow.postMessage({ type: "END_CALL" }, "*");
     callWindow.close();
     callWindow = null;
