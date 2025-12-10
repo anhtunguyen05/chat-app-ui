@@ -56,18 +56,17 @@ export default function CallControls({
         onClick={onToggleMute}
       />
 
-      {/* Video Toggle (only for video calls) */}
-      {callType === "video" && (
-        <Icon
-          name={isVideoOff ? "cameraOff" : "camera"}
-          className={`w-12 h-12 p-3 rounded-full shadow-lg transition-all hover:scale-110 backdrop-blur-sm border cursor-pointer ${
-            isVideoOff
-              ? "bg-white/10 hover:bg-white/20 border-red-400/50 text-red-400"
-              : "bg-white/10 hover:bg-white/20 border-white/20 text-white"
-          }`}
-          onClick={onToggleVideo}
-        />
-      )}
+      {/* Video Toggle - Always show (can upgrade voice to video) */}
+      <Icon
+        name={isVideoOff ? "cameraOff" : "camera"}
+        className={`w-12 h-12 p-3 rounded-full shadow-lg transition-all hover:scale-110 backdrop-blur-sm border cursor-pointer ${
+          isVideoOff
+            ? "bg-white/10 hover:bg-white/20 border-red-400/50 text-red-400"
+            : "bg-white/10 hover:bg-white/20 border-white/20 text-white"
+        }`}
+        onClick={onToggleVideo}
+        title={callType === "voice" ? "Bật camera (nâng cấp lên video)" : isVideoOff ? "Bật camera" : "Tắt camera"}
+      />
 
       {/* End Call Button */}
       <Icon 

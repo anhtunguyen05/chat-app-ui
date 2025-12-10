@@ -4,11 +4,21 @@ import { socket } from "@/lib/socket";
 interface UseCallControlsProps {
   callType: "voice" | "video";
   remotePeerId: string;
+  onCallTypeChange?: (newType: "voice" | "video") => void;
+  onAddVideoTrack?: () => Promise<MediaStreamTrack>;
+  onRemoveVideoTrack?: () => void;
 }
 
-export function useCallControls({ callType, remotePeerId }: UseCallControlsProps) {
+export function useCallControls({ 
+  callType, 
+  remotePeerId, 
+  onCallTypeChange,
+  onAddVideoTrack,
+  onRemoveVideoTrack 
+}: UseCallControlsProps) {
   const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(callType === "voice"); // Voice call → camera off by default
+  const [currentCallType, setCurrentCallType] = useState<"voice" | "video">(callType);
   const localStreamRef = useRef<MediaStream | null>(null);
   const hasCleanedUp = useRef(false);
 
@@ -52,24 +62,47 @@ export function useCallControls({ callType, remotePeerId }: UseCallControlsProps
     }
   }, [remotePeerId]);
 
-  const toggleVideo = useCallback(() => {
-    if (localStreamRef.current && callType === "video") {
-      const videoTrack = localStreamRef.current.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoOff(!videoTrack.enabled);
+  const toggleVideo = useCallback(async () => {
+    if (!localStreamRef.current) return;
+
+    const videoTrack = localStreamRef.current.getVideoTracks()[0];
+    
+    // Case 1: Video call - toggle existing video track
+    if (currentCallType === "video" && videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsVideoOff(!videoTrack.enabled);
+
+      socket.emit("call:toggle-video", {
+        to: remotePeerId,
+        enabled: videoTrack.enabled,
+      });
+    }
+    // Case 2: Voice call - upgrade to video
+    else if (currentCallType === "voice" && !videoTrack && onAddVideoTrack) {
+      try {
+        await onAddVideoTrack();
+        setCurrentCallType("video");
+        setIsVideoOff(false);
+        
+        if (onCallTypeChange) {
+          onCallTypeChange("video");
+        }
 
         socket.emit("call:toggle-video", {
           to: remotePeerId,
-          enabled: videoTrack.enabled,
+          enabled: true,
         });
+      } catch (error) {
+        console.error("Error upgrading to video:", error);
+        alert("Không thể mở camera");
       }
     }
-  }, [callType, remotePeerId]);
+  }, [currentCallType, remotePeerId, onAddVideoTrack, onCallTypeChange]);
 
   return {
     isMuted,
     isVideoOff,
+    currentCallType,
     toggleMute,
     toggleVideo,
     setLocalStream,
