@@ -24,6 +24,12 @@ export function usePeerConnection({
 
   const handleRemoteTrack = useCallback(
     (event: RTCTrackEvent) => {
+      console.log("🎬 Received remote track:", {
+        kind: event.track.kind,
+        enabled: event.track.enabled,
+        streamCount: event.streams.length
+      });
+      
       if (event.streams[0]) {
         onRemoteStream(event.streams[0]);
       } else {
@@ -218,6 +224,114 @@ export function usePeerConnection({
     }
   }, []);
 
+  const addVideoTrack = useCallback(async () => {
+    try {
+      if (!peerConnection.current || !localStream.current) {
+        throw new Error("Peer connection not established");
+      }
+
+      // Get video stream
+      const videoStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 1280, height: 720 },
+      });
+
+      const videoTrack = videoStream.getVideoTracks()[0];
+      
+      if (!videoTrack) {
+        throw new Error("No video track found");
+      }
+
+      // Add video track to local stream first
+      localStream.current.addTrack(videoTrack);
+
+      // Replace or add track to peer connection senders
+      const existingSenders = peerConnection.current.getSenders();
+      const videoSender = existingSenders.find(sender => sender.track?.kind === 'video');
+      
+      if (videoSender) {
+        // Replace existing video track
+        await videoSender.replaceTrack(videoTrack);
+      } else {
+        // Add new video track
+        peerConnection.current.addTrack(videoTrack, localStream.current);
+      }
+
+      // Wait a bit for track to be fully added
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Renegotiate connection with iceRestart if needed
+      const offer = await peerConnection.current.createOffer({
+        offerToReceiveVideo: true,
+        offerToReceiveAudio: true,
+      });
+      await peerConnection.current.setLocalDescription(offer);
+
+      // Send renegotiation offer
+      socket.emit("call:upgrade-to-video", {
+        to: remotePeerId,
+        conversationId,
+        offer,
+      });
+
+      return videoTrack;
+    } catch (error) {
+      console.error("Error adding video track:", error);
+      throw error;
+    }
+  }, [remotePeerId, conversationId]);
+
+  const removeVideoTrack = useCallback(() => {
+    try {
+      if (!localStream.current) return;
+
+      const videoTrack = localStream.current.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.stop();
+        localStream.current.removeTrack(videoTrack);
+
+        // Remove from peer connection
+        if (peerConnection.current) {
+          const sender = peerConnection.current.getSenders().find(
+            (s) => s.track === videoTrack
+          );
+          if (sender) {
+            peerConnection.current.removeTrack(sender);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error removing video track:", error);
+    }
+  }, []);
+
+  const handleRenegotiation = useCallback(async (offer: RTCSessionDescriptionInit) => {
+    try {
+      if (peerConnection.current) {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await peerConnection.current.createAnswer();
+        await peerConnection.current.setLocalDescription(answer);
+
+        socket.emit("call:upgrade-accept", {
+          to: remotePeerId,
+          conversationId,
+          answer,
+        });
+      }
+    } catch (error) {
+      console.error("Error handling renegotiation:", error);
+    }
+  }, [remotePeerId, conversationId]);
+
+  const handleRenegotiationAnswer = useCallback(async (answer: RTCSessionDescriptionInit) => {
+    try {
+      if (peerConnection.current) {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
+      }
+    } catch (error) {
+      console.error("Error handling renegotiation answer:", error);
+    }
+  }, []);
+
   const cleanup = useCallback(() => {
     if (hasCleanedUp.current) return;
     
@@ -236,6 +350,10 @@ export function usePeerConnection({
     createAnswer,
     handleAnswer,
     handleIceCandidate,
+    addVideoTrack,
+    removeVideoTrack,
+    handleRenegotiation,
+    handleRenegotiationAnswer,
     cleanup,
   };
 }

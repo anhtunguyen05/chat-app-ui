@@ -33,11 +33,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
   const remotePeerId = caller.from || caller.to || "";
   const hasEndedCall = useRef(false); // Flag để tránh emit call:end nhiều lần
   const remoteStreamSet = useRef(false); // Flag để tránh set remote stream nhiều lần
-
-  const { isMuted, isVideoOff, toggleMute, toggleVideo, setLocalStream, cleanup: cleanupControls } = useCallControls({
-    callType: actualCallType,
-    remotePeerId,
-  });
+  const remoteStreamRef = useRef<MediaStream | null>(null); // Track remote stream for comparison
 
   const {
     localStream,
@@ -45,30 +41,86 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     createAnswer,
     handleAnswer,
     handleIceCandidate,
+    addVideoTrack,
+    removeVideoTrack,
+    handleRenegotiation,
+    handleRenegotiationAnswer,
     cleanup,
   } = usePeerConnection({
     callType: caller.callType,
     conversationId: caller.conversationId,
     remotePeerId,
     onRemoteStream: (stream) => {
-      if (remoteStreamSet.current) return;
+      const hasVideo = stream.getVideoTracks().length > 0;
+      const hasAudio = stream.getAudioTracks().length > 0;
+      const videoEnabled = stream.getVideoTracks()[0]?.enabled;
       
-      remoteStreamSet.current = true;
-      setRemoteStream(stream);
-
-      setTimeout(() => {
-        if (remoteAudioRef.current && remoteAudioRef.current.srcObject !== stream) {
-          remoteAudioRef.current.srcObject = stream;
-          remoteAudioRef.current.volume = 1.0;
-          remoteAudioRef.current.muted = false;
-        }
-      }, 100);
+      console.log("📡 onRemoteStream called:", {
+        hasVideo,
+        hasAudio,
+        videoEnabled,
+        isFirstTime: !remoteStreamSet.current
+      });
+      
+      // Check if track composition actually changed
+      const prevStream = remoteStreamRef.current;
+      const hasChanged = !prevStream || 
+        prevStream.getVideoTracks().length !== stream.getVideoTracks().length ||
+        prevStream.getAudioTracks().length !== stream.getAudioTracks().length;
+      
+      if (hasChanged) {
+        console.log("🔄 Stream tracks changed, updating...");
+        // Create new MediaStream to force re-render when tracks change
+        const newStream = new MediaStream(stream.getTracks());
+        remoteStreamRef.current = newStream;
+        setRemoteStream(newStream);
+        
+        setTimeout(() => {
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = newStream;
+            remoteAudioRef.current.volume = 1.0;
+            remoteAudioRef.current.muted = false;
+          }
+        }, 100);
+      }
+      
+      if (!remoteStreamSet.current) {
+        remoteStreamSet.current = true;
+      }
     },
     onConnectionStateChange: (state) => {
       if (state === "connected") setCallStatus("connected");
     },
     onCallTypeChange: (newType) => {
       setActualCallType(newType);
+    },
+  });
+
+  const { isMuted, isVideoOff, currentCallType, toggleMute, toggleVideo, setLocalStream, cleanup: cleanupControls } = useCallControls({
+    callType: actualCallType,
+    remotePeerId,
+    onCallTypeChange: (newType) => {
+      setActualCallType(newType);
+    },
+    onAddVideoTrack: async () => {
+      const videoTrack = await addVideoTrack();
+      // Update local stream state to trigger re-render
+      if (localStream.current) {
+        const newStream = new MediaStream(localStream.current.getTracks());
+        console.log("📹 Updated local stream tracks:", {
+          video: newStream.getVideoTracks().length,
+          audio: newStream.getAudioTracks().length,
+          videoEnabled: newStream.getVideoTracks()[0]?.enabled
+        });
+        setLocalStreamState(newStream);
+      }
+      return videoTrack;
+    },
+    onRemoveVideoTrack: () => {
+      removeVideoTrack();
+      if (localStream.current) {
+        setLocalStreamState(new MediaStream(localStream.current.getTracks()));
+      }
     },
   });
 
@@ -87,6 +139,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       remoteAudioRef.current.srcObject = null;
     }
     
+    remoteStreamRef.current = null;
     cleanupControls();
     cleanup();
   };
@@ -131,6 +184,19 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     socket.on("call:video-toggled", () => {});
     socket.on("call:audio-toggled", () => {});
 
+    socket.on("call:upgrade-request", (data: { offer: RTCSessionDescriptionInit; from: string }) => {
+      // Peer wants to upgrade to video
+      console.log("📹 Received upgrade request from peer");
+      setRemoteCallType("video");
+      handleRenegotiation(data.offer);
+    });
+
+    socket.on("call:upgrade-accepted", (data: { answer: RTCSessionDescriptionInit; from: string }) => {
+      // Peer accepted our upgrade request
+      console.log("✅ Peer accepted upgrade request");
+      handleRenegotiationAnswer(data.answer);
+    });
+
     if (!caller.offer) {
       setCallStatus("connecting");
       initializeCaller();
@@ -146,6 +212,8 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       socket.off("call:rejected");
       socket.off("call:video-toggled");
       socket.off("call:audio-toggled");
+      socket.off("call:upgrade-request");
+      socket.off("call:upgrade-accepted");
       
       cleanupStreams();
     };
@@ -213,12 +281,12 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
         <VideoDisplay
           localStream={localStreamState}
           remoteStream={remoteStream}
-          callType={actualCallType}
+          callType={currentCallType}
           isConnected={callStatus === "connected"}
         />
 
         {/* Voice Call or Incoming Call UI */}
-        {((actualCallType === "voice" && remoteCallType === "voice") || callStatus !== "connected") && (
+        {((currentCallType === "voice" && remoteCallType === "voice") || callStatus !== "connected") && (
           <div className="flex flex-col items-center justify-center h-full p-8 bg-gradient-to-br from-gray-800 to-gray-900">
             <UserAvatar
               src={caller.callerAvatar}
@@ -233,18 +301,18 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
                   {caller.callType === "video" ? "Cuộc gọi video" : "Cuộc gọi thoại"} đến...
                 </>
               )}
-              {callStatus === "connecting" && "\u0110ang k\u1ebft n\u1ed1i..."}
+              {callStatus === "connecting" && "Đang kết nối..."}
               {callStatus === "connected" && (
                 <>
-                  \u0110ang trong cu\u1ed9c g\u1ecdi
-                  {actualCallType !== caller.callType && (
+                  Đang trong cuộc gọi
+                  {currentCallType !== caller.callType && (
                     <span className="block text-sm text-yellow-300 mt-2">
-                      (Đang dùng {actualCallType === "voice" ? "thoại" : "video"})
+                      (Đang dùng {currentCallType === "voice" ? "thoại" : "video"})
                     </span>
                   )}
-                  {actualCallType === "video" && remoteCallType === "voice" && (
+                  {currentCallType === "video" && remoteCallType === "voice" && (
                     <span className="block text-sm text-yellow-300 mt-2">
-                      (\u0110\u1ed1i ph\u01b0\u01a1ng ch\u1ec9 d\u00f9ng tho\u1ea1i)
+                      (Đối phương chỉ dùng thoại)
                     </span>
                   )}
                 </>
@@ -259,7 +327,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
         {/* Control Buttons */}
         <CallControls
           callStatus={callStatus}
-          callType={actualCallType}
+          callType={currentCallType}
           isMuted={isMuted}
           isVideoOff={isVideoOff}
           onAccept={handleAcceptCall}
