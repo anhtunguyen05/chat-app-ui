@@ -8,18 +8,23 @@ import {
   addMessageRequest,
   setOnlineListRequest,
   addPendingMessageRequest,
+  updateMessageReadStatusRequest,
 } from "@/features/chat/chatSlice";
-import { fetchPendingMessages } from "@/services/chatService";
+import { fetchPendingMessages, markMessagesAsRead } from "@/services/chatService";
 import { openCallWindow, closeCallWindow, isCallWindowOpen } from "@/utils/callWindow";
 import IncomingCallModal from "@/components/call/incoming-call-modal";
 
 export default function SocketProvider() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.user.user);
+  const selectedConversation = useAppSelector((state) => state.chat.selectedConversation);
   const [incomingCall, setIncomingCall] = useState<any>(null);
 
   useEffect(() => {
     if (!user) return;
+
+    // Expose selectedConversation ID to window for delayed access
+    (window as any).__selectedConversationId = selectedConversation?.id;
 
     if (user?.id) {
       socket.emit("join", { userId: user.id });
@@ -99,7 +104,7 @@ export default function SocketProvider() {
       socket.off("call:accepted");
       socket.off("call:ended");
     };
-  }, [user, dispatch]);
+  }, [user, dispatch, selectedConversation]);
 
   // Expose function để initiate call từ bên ngoài
   useEffect(() => {

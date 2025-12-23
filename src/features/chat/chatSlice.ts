@@ -36,6 +36,7 @@ const chatSlice = createSlice({
     setSelectedConversation(state, action: PayloadAction<Conversation | null>) {
       state.selectedConversation = action.payload;
       state.hasMore = true;
+      state.page = 1;
     },
     addOrUpdateConversationRequest: (
       state,
@@ -141,6 +142,7 @@ const chatSlice = createSlice({
     ) {},
     setMessages(state, action: PayloadAction<Object[]>) {
       state.messages = action.payload;
+      state.page = 1; // Reset page về 1 khi load tin nhắn mới
     },
     appendMessages(state, action: PayloadAction<Object[]>) {
       const newMessages = action.payload;
@@ -152,6 +154,7 @@ const chatSlice = createSlice({
       );
 
       state.messages = [...uniqueNewMessages, ...state.messages]; // thêm vào đầu
+      state.page += 1; // Tăng page sau khi load thêm tin nhắn
     },
     addMessageRequest(state, action: PayloadAction<Object>) {},
     addMessage: (state, action: PayloadAction<Object>) => {
