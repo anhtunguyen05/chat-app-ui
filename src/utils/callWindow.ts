@@ -2,13 +2,15 @@
  * Utility functions to manage call windows (popup/tab)
  */
 
+import { CallType } from "@/constants/socket-events";
+
 let callWindow: Window | null = null;
 
 interface CallData {
   from: string;
   to?: string;
   conversationId: string;
-  callType: "voice" | "video";
+  callType: CallType;
   callerName?: string;
   callerAvatar?: string;
   offer?: RTCSessionDescriptionInit;

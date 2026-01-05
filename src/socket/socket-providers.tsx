@@ -13,6 +13,7 @@ import {
 import { fetchPendingMessages, markMessagesAsRead } from "@/services/chatService";
 import { openCallWindow, closeCallWindow, isCallWindowOpen } from "@/utils/callWindow";
 import IncomingCallModal from "@/components/call/incoming-call-modal";
+import { UserSocketEvent, MessageSocketEvent, CallSocketEvent } from "@/constants/socket-events";
 
 export default function SocketProvider() {
   const dispatch = useAppDispatch();
@@ -27,8 +28,8 @@ export default function SocketProvider() {
     (window as any).__selectedConversationId = selectedConversation?.id;
 
     if (user?.id) {
-      socket.emit("join", { userId: user.id });
-      socket.emit("userOnline", user?.id);
+      socket.emit(UserSocketEvent.JOIN, { userId: user.id });
+      socket.emit(UserSocketEvent.USER_ONLINE, user?.id);
       console.log("✅ Joined room:", user.id);
     }
 
@@ -40,7 +41,7 @@ export default function SocketProvider() {
     fetchPending();
 
     // Lắng nghe tin nhắn đến
-    socket.on("receiveMessage", (message) => {
+    socket.on(MessageSocketEvent.RECEIVE_MESSAGE, (message) => {
       dispatch(addMessageRequest(message));
       dispatch(
         addOrUpdateConversationRequest({
@@ -51,7 +52,7 @@ export default function SocketProvider() {
     });
 
     // Tin nhắn gửi thành công
-    socket.on("messageSent", (message) => {
+    socket.on(MessageSocketEvent.MESSAGE_SENT, (message) => {
       dispatch(addMessageRequest(message));
       dispatch(
         addOrUpdateConversationRequest({
@@ -61,19 +62,19 @@ export default function SocketProvider() {
       );
     });
 
-    socket.on("onlineList", (list: string[]) => {
+    socket.on(UserSocketEvent.ONLINE_LIST, (list: string[]) => {
       dispatch(setOnlineListRequest(list));
     });
 
     // Nhận cuộc gọi đến
-    socket.on("call:incoming", (data) => {
+    socket.on(CallSocketEvent.INCOMING, (data) => {
       console.log("📥 Incoming call:", data);
       // Show modal in main window first
       setIncomingCall(data);
     });
 
     // Cuộc gọi bị từ chối
-    socket.on("call:rejected", (data) => {
+    socket.on(CallSocketEvent.REJECTED, (data) => {
       console.log("❌ Call rejected:", data);
       setIncomingCall(null);
       alert("Cuộc gọi bị từ chối");
@@ -81,13 +82,13 @@ export default function SocketProvider() {
     });
 
     // Cuộc gọi được chấp nhận - forward đến CallModal
-    socket.on("call:accepted", (data) => {
+    socket.on(CallSocketEvent.ACCEPTED, (data) => {
       console.log("✅ Call accepted (forwarding to modal):", data);
       // Event này sẽ được CallModal lắng nghe trong popup window
     });
 
     // Cuộc gọi kết thúc
-    socket.on("call:ended", (data) => {
+    socket.on(CallSocketEvent.ENDED, (data) => {
       console.log("📞 Call ended:", data);
       setIncomingCall(null);
       closeCallWindow();
@@ -95,14 +96,14 @@ export default function SocketProvider() {
 
     // Cleanup khi unmount
     return () => {
-      socket.off("receiveMessage");
-      socket.off("messageSent");
-      socket.off("userStatus");
-      socket.off("onlineList");
-      socket.off("call:incoming");
-      socket.off("call:rejected");
-      socket.off("call:accepted");
-      socket.off("call:ended");
+      socket.off(MessageSocketEvent.RECEIVE_MESSAGE);
+      socket.off(MessageSocketEvent.MESSAGE_SENT);
+      socket.off(UserSocketEvent.USER_STATUS);
+      socket.off(UserSocketEvent.ONLINE_LIST);
+      socket.off(CallSocketEvent.INCOMING);
+      socket.off(CallSocketEvent.REJECTED);
+      socket.off(CallSocketEvent.ACCEPTED);
+      socket.off(CallSocketEvent.ENDED);
     };
   }, [user, dispatch, selectedConversation]);
 
@@ -138,7 +139,7 @@ export default function SocketProvider() {
     if (!incomingCall) return;
     
     console.log("❌ Rejecting incoming call");
-    socket.emit("call:reject", {
+    socket.emit(CallSocketEvent.REJECT, {
       to: incomingCall.from,
       conversationId: incomingCall.conversationId,
     });

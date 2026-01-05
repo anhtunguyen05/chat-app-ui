@@ -1,13 +1,14 @@
 import { useRef, useCallback } from "react";
 import { socket } from "@/lib/socket";
+import { CallType, CallSocketEvent } from "@/constants/socket-events";
 
 interface UsePeerConnectionProps {
-  callType: "voice" | "video";
+  callType: CallType;
   conversationId: string;
   remotePeerId: string;
   onRemoteStream: (stream: MediaStream) => void;
   onConnectionStateChange: (state: RTCPeerConnectionState) => void;
-  onCallTypeChange?: (actualType: "voice" | "video") => void;
+  onCallTypeChange?: (actualType: CallType) => void;
 }
 
 export function usePeerConnection({
@@ -51,7 +52,7 @@ export function usePeerConnection({
   const handleIceCandidateEvent = useCallback(
     (event: RTCPeerConnectionIceEvent) => {
       if (event.candidate) {
-        socket.emit("call:ice-candidate", {
+        socket.emit(CallSocketEvent.ICE_CANDIDATE, {
           to: remotePeerId,
           candidate: event.candidate,
         });
@@ -60,18 +61,18 @@ export function usePeerConnection({
     [remotePeerId]
   );
 
-  const getUserMedia = useCallback(async (requestedCallType: "voice" | "video", allowReceiveOnly: boolean = false) => {
+  const getUserMedia = useCallback(async (requestedCallType: CallType, allowReceiveOnly: boolean = false) => {
     try {
-      if (requestedCallType === "video") {
+      if (requestedCallType === CallType.VIDEO) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
             video: { width: 1280, height: 720 },
             audio: { echoCancellation: true, noiseSuppression: true },
           });
-          return { stream, actualCallType: "video" as const };
+          return { stream, actualCallType: CallType.VIDEO };
         } catch (videoError: any) {
           if (allowReceiveOnly) {
-            return { stream: new MediaStream(), actualCallType: "voice" as const, receiveOnly: true };
+            return { stream: new MediaStream(), actualCallType: CallType.VOICE, receiveOnly: true };
           }
         }
       }
@@ -86,10 +87,10 @@ export function usePeerConnection({
         video: false,
         audio: { echoCancellation: true, noiseSuppression: true },
       });
-      return { stream, actualCallType: "voice" as const };
+      return { stream, actualCallType: CallType.VOICE };
     } catch (error: any) {
       if (allowReceiveOnly) {
-        return { stream: new MediaStream(), actualCallType: "voice" as const, receiveOnly: true };
+        return { stream: new MediaStream(), actualCallType: CallType.VOICE, receiveOnly: true };
       }
       
       if (error.name === "NotReadableError" || error.name === "TrackStartError") {
@@ -149,7 +150,7 @@ export function usePeerConnection({
         const offer = await peerConnection.current.createOffer();
         await peerConnection.current.setLocalDescription(offer);
         
-        socket.emit("call:initiate", {
+        socket.emit(CallSocketEvent.INITIATE, {
           to: remotePeerId,
           conversationId,
           callType: actualCallType,
@@ -165,7 +166,7 @@ export function usePeerConnection({
   }, [callType, conversationId, remotePeerId, getUserMedia, setupPeerConnection, onCallTypeChange]);
 
   const createAnswer = useCallback(
-    async (offer: RTCSessionDescriptionInit, requestedCallType: "voice" | "video") => {
+    async (offer: RTCSessionDescriptionInit, requestedCallType: CallType) => {
       try {
         const { stream, actualCallType } = await getUserMedia(requestedCallType, true);
 
@@ -183,7 +184,7 @@ export function usePeerConnection({
           const answer = await peerConnection.current.createAnswer();
           await peerConnection.current.setLocalDescription(answer);
           
-          socket.emit("call:accept", {
+          socket.emit(CallSocketEvent.ACCEPT, {
             to: remotePeerId,
             conversationId,
             answer,
@@ -267,7 +268,7 @@ export function usePeerConnection({
       await peerConnection.current.setLocalDescription(offer);
 
       // Send renegotiation offer
-      socket.emit("call:upgrade-to-video", {
+      socket.emit(CallSocketEvent.UPGRADE_TO_VIDEO, {
         to: remotePeerId,
         conversationId,
         offer,
@@ -311,7 +312,7 @@ export function usePeerConnection({
         const answer = await peerConnection.current.createAnswer();
         await peerConnection.current.setLocalDescription(answer);
 
-        socket.emit("call:upgrade-accept", {
+        socket.emit(CallSocketEvent.UPGRADE_ACCEPT, {
           to: remotePeerId,
           conversationId,
           answer,

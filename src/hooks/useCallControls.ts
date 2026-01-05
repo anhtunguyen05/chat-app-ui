@@ -1,10 +1,11 @@
 import { useState, useCallback, useRef } from "react";
 import { socket } from "@/lib/socket";
+import { CallType, CallSocketEvent } from "@/constants/socket-events";
 
 interface UseCallControlsProps {
-  callType: "voice" | "video";
+  callType: CallType;
   remotePeerId: string;
-  onCallTypeChange?: (newType: "voice" | "video") => void;
+  onCallTypeChange?: (newType: CallType) => void;
   onAddVideoTrack?: () => Promise<MediaStreamTrack>;
   onRemoveVideoTrack?: () => void;
 }
@@ -17,8 +18,8 @@ export function useCallControls({
   onRemoveVideoTrack 
 }: UseCallControlsProps) {
   const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(callType === "voice"); // Voice call → camera off by default
-  const [currentCallType, setCurrentCallType] = useState<"voice" | "video">(callType);
+  const [isVideoOff, setIsVideoOff] = useState(callType === CallType.VOICE); // Voice call → camera off by default
+  const [currentCallType, setCurrentCallType] = useState<CallType>(callType);
   const localStreamRef = useRef<MediaStream | null>(null);
   const hasCleanedUp = useRef(false);
 
@@ -54,7 +55,7 @@ export function useCallControls({
         audioTrack.enabled = !audioTrack.enabled;
         setIsMuted(!audioTrack.enabled);
 
-        socket.emit("call:toggle-audio", {
+        socket.emit(CallSocketEvent.TOGGLE_AUDIO, {
           to: remotePeerId,
           enabled: audioTrack.enabled,
         });
@@ -68,27 +69,27 @@ export function useCallControls({
     const videoTrack = localStreamRef.current.getVideoTracks()[0];
     
     // Case 1: Video call - toggle existing video track
-    if (currentCallType === "video" && videoTrack) {
+    if (currentCallType === CallType.VIDEO && videoTrack) {
       videoTrack.enabled = !videoTrack.enabled;
       setIsVideoOff(!videoTrack.enabled);
 
-      socket.emit("call:toggle-video", {
+      socket.emit(CallSocketEvent.TOGGLE_VIDEO, {
         to: remotePeerId,
         enabled: videoTrack.enabled,
       });
     }
     // Case 2: Voice call - upgrade to video
-    else if (currentCallType === "voice" && !videoTrack && onAddVideoTrack) {
+    else if (currentCallType === CallType.VOICE && !videoTrack && onAddVideoTrack) {
       try {
         await onAddVideoTrack();
-        setCurrentCallType("video");
+        setCurrentCallType(CallType.VIDEO);
         setIsVideoOff(false);
         
         if (onCallTypeChange) {
-          onCallTypeChange("video");
+          onCallTypeChange(CallType.VIDEO);
         }
 
-        socket.emit("call:toggle-video", {
+        socket.emit(CallSocketEvent.TOGGLE_VIDEO, {
           to: remotePeerId,
           enabled: true,
         });
