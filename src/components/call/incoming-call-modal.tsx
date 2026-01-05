@@ -3,12 +3,13 @@
 import React from "react";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import { Icon } from "@/components/icon/icon";
+import { CallType } from "@/constants/socket-events";
 
 interface IncomingCallModalProps {
   caller: {
     callerName?: string;
     callerAvatar?: string;
-    callType: "voice" | "video";
+    callType: CallType;
   };
   onAccept: () => void;
   onReject: () => void;
@@ -27,7 +28,7 @@ export default function IncomingCallModal({ caller, onAccept, onReject }: Incomi
             {caller.callerName || "Unknown"}
           </h2>
           <p className="text-white/80 text-lg mb-8">
-            {caller.callType === "video" ? "Cuộc gọi video" : "Cuộc gọi thoại"} đến...
+            {caller.callType === CallType.VIDEO ? "Cuộc gọi video" : "Cuộc gọi thoại"} đến...
           </p>
 
           {/* Accept/Reject Buttons */}

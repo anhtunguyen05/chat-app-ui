@@ -2,6 +2,7 @@ import api from "@/lib/axios";
 import { socket } from "@/lib/socket";
 import { User } from "@/types/user";
 import { Conversation } from "@/features/chat/chatType";
+import { MessageSocketEvent, ConversationSocketEvent, MessageType } from "@/constants/socket-events";
 
 export interface ConversationResponse {
   success: boolean;
@@ -50,7 +51,7 @@ export function sendMessage(
   targetId: string,
   text: string,
   imageUrls: string[] = [],
-  msgType: "text" | "image" | "mixed" = "text"
+  msgType: MessageType = MessageType.TEXT
 ): void {
   const payload: any = {
     senderId,
@@ -60,11 +61,11 @@ export function sendMessage(
     type: msgType,
   };
 
-  socket.emit("sendMessage", payload);
+  socket.emit(MessageSocketEvent.SEND_MESSAGE, payload);
 }
 
 export function markMessagesAsRead(userId: string, conversationId: string) {
-  socket.emit("markAsRead", {
+  socket.emit(MessageSocketEvent.MARK_AS_READ, {
     userId,
     conversationId,
   });
@@ -72,14 +73,14 @@ export function markMessagesAsRead(userId: string, conversationId: string) {
 }
 
 export function typing(senderId: string, conversationId: string) {
-  socket.emit("typing", {
+  socket.emit(ConversationSocketEvent.TYPING, {
     senderId,
     conversationId,
   });
 }
 
 export function stopTyping(senderId: string, conversationId: string) {
-  socket.emit("stopTyping", {
+  socket.emit(ConversationSocketEvent.STOP_TYPING, {
     senderId,
     conversationId,
   });

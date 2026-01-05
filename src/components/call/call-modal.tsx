@@ -8,13 +8,14 @@ import { useCallControls } from "@/hooks/useCallControls";
 import CallDuration from "./call-duration";
 import CallControls from "./call-controls";
 import VideoDisplay from "./video-display";
+import { CallType, CallSocketEvent } from "@/constants/socket-events";
 
 interface CallModalProps {
   caller: {
     from: string;
     to?: string;
     conversationId: string;
-    callType: "voice" | "video";
+    callType: CallType;
     callerName?: string;
     callerAvatar?: string;
     offer?: RTCSessionDescriptionInit;
@@ -27,8 +28,8 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
   const [callStatus, setCallStatus] = useState<"incoming" | "connecting" | "connected">("incoming");
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [localStreamState, setLocalStreamState] = useState<MediaStream | null>(null);
-  const [actualCallType, setActualCallType] = useState<"voice" | "video">(caller.callType);
-  const [remoteCallType, setRemoteCallType] = useState<"voice" | "video">(caller.callType);
+  const [actualCallType, setActualCallType] = useState<CallType>(caller.callType);
+  const [remoteCallType, setRemoteCallType] = useState<CallType>(caller.callType);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const remotePeerId = caller.from || caller.to || "";
   const hasEndedCall = useRef(false); // Flag để tránh emit call:end nhiều lần
@@ -146,17 +147,17 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
 
   useEffect(() => {
     // Socket event listeners
-    socket.on("call:accepted", (data: { answer: RTCSessionDescriptionInit; actualCallType?: "voice" | "video" }) => {
+    socket.on(CallSocketEvent.ACCEPTED, (data: { answer: RTCSessionDescriptionInit; actualCallType?: CallType }) => {
       setCallStatus("connecting");
       if (data.actualCallType) setRemoteCallType(data.actualCallType);
       handleAnswer(data.answer);
     });
 
-    socket.on("call:ice-candidate", (data: { candidate: RTCIceCandidateInit }) => {
+    socket.on(CallSocketEvent.ICE_CANDIDATE, (data: { candidate: RTCIceCandidateInit }) => {
       handleIceCandidate(data.candidate);
     });
 
-    socket.on("call:ended", () => {
+    socket.on(CallSocketEvent.ENDED, () => {
       hasEndedCall.current = true;
       remoteStreamSet.current = false;
       setLocalStreamState(null);
@@ -167,7 +168,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       }, 200);
     });
 
-    socket.on("call:rejected", () => {
+    socket.on(CallSocketEvent.REJECTED, () => {
       hasEndedCall.current = true;
       remoteStreamSet.current = false;
       setLocalStreamState(null);
@@ -181,17 +182,17 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       }, 200);
     });
 
-    socket.on("call:video-toggled", () => {});
-    socket.on("call:audio-toggled", () => {});
+    socket.on(CallSocketEvent.VIDEO_TOGGLED, () => {});
+    socket.on(CallSocketEvent.AUDIO_TOGGLED, () => {});
 
-    socket.on("call:upgrade-request", (data: { offer: RTCSessionDescriptionInit; from: string }) => {
+    socket.on(CallSocketEvent.UPGRADE_REQUEST, (data: { offer: RTCSessionDescriptionInit; from: string }) => {
       // Peer wants to upgrade to video
       console.log("📹 Received upgrade request from peer");
-      setRemoteCallType("video");
+      setRemoteCallType(CallType.VIDEO);
       handleRenegotiation(data.offer);
     });
 
-    socket.on("call:upgrade-accepted", (data: { answer: RTCSessionDescriptionInit; from: string }) => {
+    socket.on(CallSocketEvent.UPGRADE_ACCEPTED, (data: { answer: RTCSessionDescriptionInit; from: string }) => {
       // Peer accepted our upgrade request
       console.log("✅ Peer accepted upgrade request");
       handleRenegotiationAnswer(data.answer);
@@ -206,14 +207,14 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     }
 
     return () => {
-      socket.off("call:accepted");
-      socket.off("call:ice-candidate");
-      socket.off("call:ended");
-      socket.off("call:rejected");
-      socket.off("call:video-toggled");
-      socket.off("call:audio-toggled");
-      socket.off("call:upgrade-request");
-      socket.off("call:upgrade-accepted");
+      socket.off(CallSocketEvent.ACCEPTED);
+      socket.off(CallSocketEvent.ICE_CANDIDATE);
+      socket.off(CallSocketEvent.ENDED);
+      socket.off(CallSocketEvent.REJECTED);
+      socket.off(CallSocketEvent.VIDEO_TOGGLED);
+      socket.off(CallSocketEvent.AUDIO_TOGGLED);
+      socket.off(CallSocketEvent.UPGRADE_REQUEST);
+      socket.off(CallSocketEvent.UPGRADE_ACCEPTED);
       
       cleanupStreams();
     };
@@ -256,7 +257,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     setTimeout(() => {
       cleanupStreams();
       
-      socket.emit("call:end", {
+      socket.emit(CallSocketEvent.END, {
         to: remotePeerId,
         conversationId: caller.conversationId,
       });

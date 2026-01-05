@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import { CommonSocketEvent } from "@/constants/socket-events";
 
 // Tạo socket nhưng KHÔNG tự connect
 export const socket = io("http://localhost:5000", {
@@ -16,14 +17,14 @@ export function connectSocket() {
 }
 
 // Log event
-socket.on("connect", () => {
+socket.on(CommonSocketEvent.CONNECTION, () => {
   console.log("🟢 Connected to socket:", socket.id);
 });
 
-socket.on("disconnect", () => {
+socket.on(CommonSocketEvent.DISCONNECT, () => {
   console.log("🔴 Disconnected from socket");
 });
 
-socket.on("connect_error", (err) => {
+socket.on(CommonSocketEvent.CONNECT_ERROR, (err) => {
   console.log("⚠️ Socket connect error:", err.message);
 });

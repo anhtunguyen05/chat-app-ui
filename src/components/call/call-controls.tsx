@@ -1,8 +1,9 @@
 import { Icon } from "@/components/icon/icon";
+import { CallType } from "@/constants/socket-events";
 
 interface CallControlsProps {
   callStatus: "incoming" | "connecting" | "connected";
-  callType: "voice" | "video";
+  callType: CallType;
   isMuted: boolean;
   isVideoOff: boolean;
   onAccept?: () => void;

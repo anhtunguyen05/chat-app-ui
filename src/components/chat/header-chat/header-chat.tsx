@@ -7,6 +7,7 @@ import { Conversation } from "@/features/chat/chatType";
 import { timeFormat } from "@/utils/formatter";
 import { socket } from "@/lib/socket";
 import { is } from "date-fns/locale";
+import { CallType } from "@/constants/socket-events";
 
 interface HeaderChatProps {
   selectedConversation: Conversation;
@@ -50,7 +51,7 @@ export default function HeaderChat({
         (window as any).initiateCall({
           to: receiverParticipantId,
           conversationId: selectedConversation.id,
-          callType: "voice",
+          callType: CallType.VOICE,
           callerName: selectedConversation.name,
           callerAvatar: selectedConversation.avatar,
         });
@@ -79,7 +80,7 @@ export default function HeaderChat({
         (window as any).initiateCall({
           to: receiverParticipantId,
           conversationId: selectedConversation.id,
-          callType: "video",
+          callType: CallType.VIDEO,
           callerName: selectedConversation.name,
           callerAvatar: selectedConversation.avatar,
         });

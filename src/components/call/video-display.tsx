@@ -1,9 +1,10 @@
 import { useRef, useEffect, useState } from "react";
+import { CallType } from "@/constants/socket-events";
 
 interface VideoDisplayProps {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
-  callType: "voice" | "video";
+  callType: CallType;
   isConnected: boolean;
 }
 
