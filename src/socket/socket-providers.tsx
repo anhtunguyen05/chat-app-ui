@@ -8,24 +8,31 @@ import {
   addMessageRequest,
   setOnlineListRequest,
   addPendingMessageRequest,
-  updateMessageReadStatusRequest,
 } from "@/features/chat/chatSlice";
-import { fetchPendingMessages, markMessagesAsRead } from "@/services/chatService";
+import { fetchPendingMessages } from "@/services/chatService";
 import { openCallWindow, closeCallWindow, isCallWindowOpen } from "@/utils/callWindow";
 import IncomingCallModal from "@/components/call/incoming-call-modal";
-import { UserSocketEvent, MessageSocketEvent, CallSocketEvent } from "@/constants/socket-events";
+import { UserSocketEvent, MessageSocketEvent, CallSocketEvent, CallType } from "@/constants/socket-events";
+
+interface CallData {
+  from: string;
+  conversationId: string;
+  callerName: string;
+  callerAvatar: string;
+  callType: CallType;
+}
 
 export default function SocketProvider() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.user.user);
   const selectedConversation = useAppSelector((state) => state.chat.selectedConversation);
-  const [incomingCall, setIncomingCall] = useState<any>(null);
+  const [incomingCall, setIncomingCall] = useState<CallData | null>(null);
 
   useEffect(() => {
     if (!user) return;
 
     // Expose selectedConversation ID to window for delayed access
-    (window as any).__selectedConversationId = selectedConversation?.id;
+    (window as Window & { __selectedConversationId?: string }).__selectedConversationId = selectedConversation?.id;
 
     if (user?.id) {
       socket.emit(UserSocketEvent.JOIN, { userId: user.id });
@@ -109,7 +116,7 @@ export default function SocketProvider() {
 
   // Expose function để initiate call từ bên ngoài
   useEffect(() => {
-    (window as any).initiateCall = (callData: any) => {
+    (window as Window & { initiateCall?: (callData: CallData) => void }).initiateCall = (callData: CallData) => {
       console.log("📤 Initiating call:", callData);
       if (!isCallWindowOpen()) {
         openCallWindow(callData);
@@ -119,7 +126,7 @@ export default function SocketProvider() {
     };
 
     return () => {
-      delete (window as any).initiateCall;
+      delete (window as Window & { initiateCall?: (callData: CallData) => void }).initiateCall;
     };
   }, []);
 

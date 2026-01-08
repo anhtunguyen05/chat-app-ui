@@ -8,10 +8,26 @@ export function timeFormat(time: Date) {
   });
 }
 
+interface ConversationFromAPI {
+  id: string;
+  type: string;
+  target?: {
+    avatarUrl?: string;
+    name?: string;
+    nickname?: string;
+  };
+  lastMessage?: {
+    text?: string;
+    createdAt?: Date;
+    isRead?: boolean;
+  };
+  isRead?: boolean;
+}
+
 /**
  * Chuẩn hóa dữ liệu từ API để hiển thị trong ChatItem
  */
-export function formatConversationForUI(convo: any) {
+export function formatConversationForUI(convo: ConversationFromAPI) {
   const isGroup = convo.type === "group";
   const target = convo.target || {};
 

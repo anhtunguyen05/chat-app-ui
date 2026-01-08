@@ -1,8 +1,7 @@
 "use client";
 
-import { memo, use, useState } from "react";
+import { memo, useState } from "react";
 import Image from "next/image";
-import { useAppSelector } from "@/hooks/useAppSelector";
 
 interface UserAvatarProps {
   src?: string;

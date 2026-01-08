@@ -66,7 +66,7 @@ export default function CallControls({
             : "bg-white/10 hover:bg-white/20 border-white/20 text-white"
         }`}
         onClick={onToggleVideo}
-        title={callType === "voice" ? "Bật camera (nâng cấp lên video)" : isVideoOff ? "Bật camera" : "Tắt camera"}
+        title={callType === CallType.VOICE ? "Bật camera (nâng cấp lên video)" : isVideoOff ? "Bật camera" : "Tắt camera"}
       />
 
       {/* End Call Button */}

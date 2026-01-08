@@ -6,7 +6,7 @@ import CallModal from "@/components/call/call-modal";
 
 export default function CallPage() {
   const searchParams = useSearchParams();
-  const [callData, setCallData] = useState<any>(null);
+  const [callData, setCallData] = useState(null);
 
   useEffect(() => {
     // Get call data from URL params

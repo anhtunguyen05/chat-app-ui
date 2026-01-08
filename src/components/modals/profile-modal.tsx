@@ -15,7 +15,6 @@ import { useAppSelector } from "@/hooks/useAppSelector";
 import {
   updateNicknameRequest,
   updateAvatarRequest,
-  resetSuccess,
 } from "@/features/user/userSlice";
 import UploadImageModal from "@/components/modals/upload-image-modal";
 import UserAvatar from "@/components/user-avatar/user-avatar";

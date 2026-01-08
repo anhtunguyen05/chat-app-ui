@@ -70,7 +70,7 @@ export function usePeerConnection({
             audio: { echoCancellation: true, noiseSuppression: true },
           });
           return { stream, actualCallType: CallType.VIDEO };
-        } catch (videoError: any) {
+        } catch (videoError: unknown) {
           if (allowReceiveOnly) {
             return { stream: new MediaStream(), actualCallType: CallType.VOICE, receiveOnly: true };
           }
@@ -88,12 +88,12 @@ export function usePeerConnection({
         audio: { echoCancellation: true, noiseSuppression: true },
       });
       return { stream, actualCallType: CallType.VOICE };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (allowReceiveOnly) {
         return { stream: new MediaStream(), actualCallType: CallType.VOICE, receiveOnly: true };
       }
       
-      if (error.name === "NotReadableError" || error.name === "TrackStartError") {
+      if (error instanceof Error && (error.name === "NotReadableError" || error.name === "TrackStartError")) {
         throw new Error("Microphone đang được sử dụng bởi ứng dụng khác. Vui lòng đóng các tab/ứng dụng khác đang dùng microphone.");
       }
       throw error;

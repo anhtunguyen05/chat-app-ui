@@ -1,6 +1,5 @@
 "use client";
 
-
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
 import {
@@ -36,7 +35,6 @@ import {
   CircleUserRound,
   PhoneIncoming
 } from "lucide-react";
-import { send } from "process";
 
 export const Icons = {
   house: House,
@@ -77,6 +75,7 @@ export interface IconProps extends React.SVGProps<SVGSVGElement> {
   size?: number; // 👉 size của icon SVG
   className?: string; // 👉 class của icon SVG
   buttonClassName?: string; // 👉 class của button (để chỉnh width/height)
+  title?: string; // 👉 tooltip text
 }
 
 export function Icon({
