@@ -29,24 +29,26 @@ import type { User } from "@/types/user";
 
 function* handleLogin(action: PayloadAction<LoginPayload>) {
   try {
-    const data: { user: any } = yield call(login, action.payload);
+    const data: { user: User } = yield call(login, action.payload);
     yield put(loginSuccess());
     yield put(setUser(data.user));
-  } catch (error: any) {
-    yield put(loginFailure(error.message || "Login failed"));
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Login failed";
+    yield put(loginFailure(message));
   }
 }
 
 function* handleLoginWithGoogle(action: PayloadAction<LoginGooglePayload>) {
   try {
-    const data: { user: any; accessToken: string } = yield call(
+    const data: { user: User; accessToken: string } = yield call(
       loginWithGoogle,
       action.payload.token
     );
     yield put(loginSuccess());
     yield put(setUser(data.user));
-  } catch (error: any) {
-    yield put(loginFailure(error.message || "Login failed"));
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Login failed";
+    yield put(loginFailure(message));
   }
 }
 
@@ -57,8 +59,9 @@ function* handleRegister(
     const user = yield call(register, action.payload);
     yield put(registerSuccess());
     yield put(setUser(user));
-  } catch (error: any) {
-    yield put(registerFailure(error.message || "Register failed"));
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Register failed";
+    yield put(registerFailure(message));
   }
 }
 
@@ -67,8 +70,9 @@ function* handleLogout() {
     yield call(logout);
     yield put(logoutSuccess());
     yield put(clearUser());
-  } catch (error: any) {
-    yield put(logoutFailure(error.message || "Logout failed"));
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Logout failed";
+    yield put(logoutFailure(message));
   }
 }
 

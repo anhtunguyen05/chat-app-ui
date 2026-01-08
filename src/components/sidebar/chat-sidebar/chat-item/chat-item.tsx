@@ -2,7 +2,6 @@ import React from "react";
 import { Conversation } from "@/features/chat/chatType";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import { timeFormat } from "@/utils/formatter";
-import { time } from "console";
 
 interface ChatItemProps {
   conversation: Conversation;

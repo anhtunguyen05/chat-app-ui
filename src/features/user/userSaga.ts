@@ -1,7 +1,6 @@
 // src/features/user/userSaga.ts
-import { call, put, takeLatest, Effect } from "redux-saga/effects";
+import { call, put, takeLatest } from "redux-saga/effects";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { User } from "@/types/user";
 import {
   updateAvatarRequest,
   updateCoverRequest,

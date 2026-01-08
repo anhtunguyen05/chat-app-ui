@@ -1,6 +1,5 @@
 import api from "@/lib/axios";
 import { User } from "@/types/user";
-// Kiểu dữ liệu cho request/response (TypeScript)
 
 export interface LoginData {
   email: string;
@@ -18,19 +17,16 @@ export interface AuthResponse {
   user: User;
 }
 
-// Đăng nhập
 export async function login(data: LoginData): Promise<AuthResponse> {
   const res = await api.post<AuthResponse>("/auth/login", data);
   return res.data;
 }
 
-// Đăng ký
 export async function register(data: RegisterData): Promise<AuthResponse> {
   const res = await api.post<AuthResponse>("/auth/register", data);
   return res.data;
 }
 
-// Đăng nhập bằng Google
 export async function loginWithGoogle(token: string): Promise<AuthResponse> {
   const res = await api.post<AuthResponse>("/auth/google", { token });
   return res.data;

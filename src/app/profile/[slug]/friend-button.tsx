@@ -9,7 +9,6 @@ import {
   cancelFriendRequest,
   unfriend,
 } from "@/services/friendService";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,

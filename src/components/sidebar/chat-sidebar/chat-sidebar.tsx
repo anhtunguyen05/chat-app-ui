@@ -3,7 +3,6 @@
 import React from "react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { User } from "@/types/user";
 import ChatItem from "@/components/sidebar/chat-sidebar/chat-item/chat-item";
 import MessageItem from "@/components/message-item/message-item";
 import {
@@ -19,7 +18,6 @@ export default function ChatSidebar() {
   const { selectedConversation, activeTab, conversations, searchQuery } = useAppSelector(
     (state) => state.chat
   );
-  const { user } = useAppSelector((state) => state.user);
 
   const [loading, setLoading] = React.useState(true);
 

@@ -1,4 +1,3 @@
-import { User } from "@/types/user";
 
 export interface AuthState {
   loading: boolean;

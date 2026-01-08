@@ -1,6 +1,5 @@
 import api from "@/lib/axios";
 import { socket } from "@/lib/socket";
-import { User } from "@/types/user";
 import { Conversation } from "@/features/chat/chatType";
 import { MessageSocketEvent, ConversationSocketEvent, MessageType } from "@/constants/socket-events";
 

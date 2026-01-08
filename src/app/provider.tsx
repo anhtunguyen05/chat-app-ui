@@ -2,7 +2,6 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Provider } from "react-redux";
 import {
-  ThemeProvider as NextThemesProvider,
   ThemeProvider,
 } from "next-themes";
 import { store } from "./store";
