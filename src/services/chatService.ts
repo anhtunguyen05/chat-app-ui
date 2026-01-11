@@ -1,6 +1,6 @@
 import api from "@/lib/axios";
 import { socket } from "@/lib/socket";
-import { Conversation } from "@/features/chat/chatType";
+import { Conversation, Message, Participant } from "@/features/chat/chatType";
 import { MessageSocketEvent, ConversationSocketEvent, MessageType } from "@/constants/socket-events";
 
 export interface ConversationResponse {
@@ -8,14 +8,14 @@ export interface ConversationResponse {
   data: Conversation[];
 }
 
-export async function getConversations(): Promise<Object[]> {
+export async function getConversations(): Promise<Conversation[]> {
   const res = await api.get<ConversationResponse>(`/conversations`);
   return res.data.data;
 }
 
 export async function getConversationParticipants(
   conversationId: string
-): Promise<Object[]> {
+): Promise<Participant[]> {
   const res = await api.get(`/conversations/${conversationId}/participants`);
   return res.data;
 }
@@ -24,7 +24,7 @@ export async function getConversation(
   conversationId: string,
   page = 1,
   limit = 20
-): Promise<Object[]> {
+): Promise<Message[]> {
   const res = await api.get(`/chats/${conversationId}`, {
     params: { page, limit },
   });
@@ -52,7 +52,13 @@ export function sendMessage(
   imageUrls: string[] = [],
   msgType: MessageType = MessageType.TEXT
 ): void {
-  const payload: any = {
+  const payload: {
+    senderId: string;
+    conversationId: string;
+    text: string;
+    imageUrls: string[];
+    type: MessageType;
+  } = {
     senderId,
     conversationId: targetId,
     text,
@@ -85,7 +91,7 @@ export function stopTyping(senderId: string, conversationId: string) {
   });
 }
 
-export async function fetchPendingMessages(): Promise<Object[]> {
+export async function fetchPendingMessages(): Promise<object[]> {
   const res = await api.get("/chats/pending-messages");
   return res.data.messages;
 }

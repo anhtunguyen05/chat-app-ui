@@ -1,4 +1,4 @@
-// import { User } from "@/types/user";
+import { CallType, CallStatus, MessageType } from "@/constants/socket-events";
 
 export interface ConversationTarget {
   id: string;
@@ -42,22 +42,37 @@ export interface Participant {
 export interface Message {
   id: string;
   sender: User;
+
   conversation: string;
   receiver: User | null;
   group: string | null;
+
+  type: MessageType
+
   text: string | null;
-  imageUrls: [];
-  type: string;
-  isRead?: boolean;
+  imageUrls: string[];
+
+  callData?: {
+    callType: CallType
+    status: CallStatus
+    duration: number;
+    startedAt: Date;
+    endedAt: Date;
+  };
+
+  isRead: boolean;
+  readBy: string[];
+
   createdAt: Date;
   updatedAt: Date;
 }
+
 
 export interface ChatState {
   selectedConversation: Conversation | null;
   activeTab: string;
   conversations: Conversation[];
-  messages: Object[];
+  messages: Message[];
   page: number;
   hasMore: boolean;
   onlineList: string[];

@@ -1,4 +1,3 @@
-// src/features/user/userSaga.ts
 import { call, put, takeLatest } from "redux-saga/effects";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import {
@@ -23,9 +22,10 @@ function* handleUpdateAvatar(action: PayloadAction<UpdateImagePayload>) {
   try {
     const data: UpdateResponse = yield call(updateAvatar, action.payload);
     yield put(updateProfileSuccess(data.user)); // cập nhật state
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } } };
     yield put(
-      updateProfileFailure(error.response?.data?.message || "Update failed")
+      updateProfileFailure(err.response?.data?.message || "Update failed")
     );
   }
 }
@@ -34,9 +34,10 @@ function* handleUpdateCover(action: PayloadAction<UpdateImagePayload>) {
   try {
     const data: UpdateResponse = yield call(updateCover, action.payload);
     yield put(updateProfileSuccess(data.user)); // cập nhật state
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } } };
     yield put(
-      updateProfileFailure(error.response?.data?.message || "Update failed")
+      updateProfileFailure(err.response?.data?.message || "Update failed")
     );
   }
 }
@@ -45,9 +46,10 @@ function* handleUpdateNickname(action: PayloadAction<UpdateNicknamePayload>) {
   try {
     const data: UpdateResponse = yield call(updateNickname, action.payload);
     yield put(updateProfileSuccess(data.user)); // cập nhật state
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } } };
     yield put(
-      updateProfileFailure(error.response?.data?.message || "Update failed")
+      updateProfileFailure(err.response?.data?.message || "Update failed")
     );
   }
 }

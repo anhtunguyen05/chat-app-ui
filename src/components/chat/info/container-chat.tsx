@@ -13,6 +13,7 @@ import MessageBubble from "./message-bubble";
 import TypingIndicator from "./typing-indicator";
 import { useMessageSeenBy } from "./hooks/useMessageSeenBy";
 import { useSocketEvents } from "./hooks/useSocketEvents";
+import { Message } from "@/features/chat/chatType";
 
 export default function ContainerChat() {
   const dispatch = useAppDispatch();
@@ -21,9 +22,8 @@ export default function ContainerChat() {
     (state) => state.chat
   );
 
-  const chatMessages = useAppSelector((state) => state.chat.messages) || [];
+  const chatMessages: Message[] = useAppSelector((state) => state.chat.messages) || [];
 
-  const [isTyping, setIsTyping] = React.useState(false);
   const [typingUsers, setTypingUsers] = React.useState<string[]>([]);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -38,7 +38,6 @@ export default function ContainerChat() {
   useSocketEvents(
     selectedConversation,
     currentUserId,
-    setIsTyping,
     setTypingUsers
   );
 
@@ -81,16 +80,15 @@ export default function ContainerChat() {
           </div>
         )}
 
-        {chatMessages.map((msg: any) => {
+        {chatMessages.map((msg: Message) => {
           const isMine = msg.sender?.id === currentUserId;
-          const seenBy = getSeenBy(msg.id, isMine, msg.sender?.id);
+          const seenBy = getSeenBy(msg.id, msg.sender?.id);
 
           return (
             <MessageBubble
               key={msg.id}
               msg={msg}
               isMine={isMine}
-              currentUserId={currentUserId}
               selectedConversation={selectedConversation}
               chatMessages={chatMessages}
               seenBy={seenBy}
@@ -102,7 +100,6 @@ export default function ContainerChat() {
 
         <ChatScrollHandler
           userId={currentUserId!}
-          latestMsg={chatMessages[chatMessages.length - 1]}
           containerRef={containerRef}
           chatMessages={chatMessages}
           selectedConversation={selectedConversation}

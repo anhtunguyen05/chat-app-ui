@@ -11,8 +11,6 @@ interface VideoDisplayProps {
 export default function VideoDisplay({
   localStream,
   remoteStream,
-  callType,
-  isConnected,
 }: VideoDisplayProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -30,17 +28,19 @@ export default function VideoDisplay({
   }, [localStream]);
 
   useEffect(() => {
-    if (localVideoRef.current && localStream && hasLocalVideo) {
-      localVideoRef.current.srcObject = localStream;
-      localVideoRef.current.play().catch((err) => {
+    const videoElement = localVideoRef.current;
+    
+    if (videoElement && localStream && hasLocalVideo) {
+      videoElement.srcObject = localStream;
+      videoElement.play().catch((err) => {
         console.error("Error playing local video:", err);
       });
     }
 
     return () => {
-      if (localVideoRef.current) {
-        const stream = localVideoRef.current.srcObject as MediaStream;
-        localVideoRef.current.srcObject = null;
+      if (videoElement) {
+        const stream = videoElement.srcObject as MediaStream;
+        videoElement.srcObject = null;
         
         if (stream) {
           stream.getTracks().forEach(track => {
@@ -62,16 +62,18 @@ export default function VideoDisplay({
   }, [remoteStream]);
 
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream && hasRemoteVideo) {
-      remoteVideoRef.current.srcObject = remoteStream;
-      remoteVideoRef.current.play().catch((err) => {
+    const videoElement = remoteVideoRef.current;
+    
+    if (videoElement && remoteStream && hasRemoteVideo) {
+      videoElement.srcObject = remoteStream;
+      videoElement.play().catch((err) => {
         console.error("Error playing remote video:", err);
       });
     }
 
     return () => {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = null;
+      if (videoElement) {
+        videoElement.srcObject = null;
       }
     };
   }, [remoteStream, hasRemoteVideo]);

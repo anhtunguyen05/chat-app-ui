@@ -3,25 +3,24 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { RelationshipStatus } from "@/types/friend";
+import { User } from "@/types/user";
 import {
   sendFriendRequest,
   acceptFriendRequest,
   rejectFriendRequest,
-  cancelFriendRequest,
-  unfriend,
 } from "@/services/friendService";
 
-interface Friend {
-  id: string;
-  nickname?: string;
-  slug: string;
-  mutual?: string;
-  avatar: string;
-}
+// export interface Friend {
+//   id: string;
+//   nickname?: string;
+//   slug: string;
+//   mutual?: string;
+//   avatar: string;
+// }
 
 interface FriendRequestListProps {
   title?: string;
-  friends: Friend[];
+  friends: User[];
   tab: string;
   onChange: (tab: string) => void;
 }
@@ -86,7 +85,7 @@ export default function FriendRequestList({
           >
             <div className="w-full h-48 bg-gray-200 relative">
               <img
-                src={user.avatar}
+                src={user.avatarUrl}
                 alt={user?.nickname}
                 className="object-cover w-full h-full"
               />
@@ -96,7 +95,7 @@ export default function FriendRequestList({
               <h3 className="font-semibold text-gray-800 dark:text-gray-100">
                 {user?.nickname}
               </h3>
-              <p className="text-sm text-gray-500 mb-3">{user?.mutual}</p>
+              {/* <p className="text-sm text-gray-500 mb-3">{user?.mutual}</p> */}
 
               {/* ✅ Nút theo relationship */}
               <div className="flex gap-2">

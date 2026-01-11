@@ -3,7 +3,7 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useState } from "react";
 import {
   Form,
@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { useAppSelector } from "@/hooks/useAppSelector";
 import {
   loginRequest,
   registerRequest,
@@ -52,7 +51,7 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
   const [serverError, setServerError] = useState("");
   const router = useRouter();
 
-  async function onSubmit(values: any) {
+  async function onSubmit(values: LoginData | RegisterData) {
     setLoading(true);
     setServerError("");
     try {
@@ -63,15 +62,21 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
         dispatch(loginRequest(values as LoginData));
         router.push("/chat");
       }
-    } catch (err: any) {
-      setServerError(err.response?.data?.message || "Something went wrong");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setServerError(error.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   }
 
   // Hàm xử lý login bằng Google
-  async function handleGoogleLogin(credentialResponse: any) {
+  function handleGoogleLogin(credentialResponse: CredentialResponse) {
+    if (!credentialResponse.credential) {
+      console.error("No credential received");
+      return;
+    }
+    
     try {
       dispatch(
         loginWithGoogleRequest({ token: credentialResponse.credential })

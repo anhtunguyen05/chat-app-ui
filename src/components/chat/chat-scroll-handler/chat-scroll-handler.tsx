@@ -1,18 +1,17 @@
-import React, { use } from "react";
+import React from "react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useThrottle } from "@/hooks/useThrottle";
 import {
   fetchMessagesRequest,
   updateMessageReadStatusRequest,
 } from "@/features/chat/chatSlice";
-import { Conversation } from "@/features/chat/chatType";
+import { Conversation, Message } from "@/features/chat/chatType";
 import { markMessagesAsRead } from "@/services/chatService";
 
 interface ChatScrollHandlerProps {
   userId: string;
-  latestMsg: any;
   containerRef: React.RefObject<HTMLDivElement | null>;
-  chatMessages: any[];
+  chatMessages: Message[];
   selectedConversation: Conversation | null;
   page: number;
   hasMore: boolean;
@@ -21,7 +20,6 @@ interface ChatScrollHandlerProps {
 
 export default function ChatScrollHandler({
   userId,
-  latestMsg,
   containerRef,
   chatMessages,
   selectedConversation,
@@ -67,7 +65,7 @@ export default function ChatScrollHandler({
     const isAtBottom = Math.abs(distanceFromBottom) < 10;
 
     return isAtBottom;
-  }, [selectedConversation]);
+  }, [containerRef, selectedConversation]);
 
   const handleScrollCallback = React.useCallback(() => {
     const container = containerRef.current;
@@ -98,7 +96,7 @@ export default function ChatScrollHandler({
         })
       );
     }
-  }, [checkIsAtBottom, selectedConversation, userId, dispatch, hasMore, page]);
+  }, [containerRef, checkIsAtBottom, selectedConversation, userId, dispatch, hasMore, page]);
 
   const handleScroll = useThrottle(handleScrollCallback, 50);
 
@@ -108,7 +106,7 @@ export default function ChatScrollHandler({
 
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+  }, [containerRef, handleScroll]);
 
   React.useEffect(() => {
     if (!containerRef.current) return;
@@ -138,14 +136,12 @@ export default function ChatScrollHandler({
         }
       }, 100);
     });
-  }, [selectedConversation?.id]);
+  }, [containerRef, selectedConversation?.id, checkIsAtBottom, selectedConversation, userId, dispatch]);
 
   React.useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const messageCountChanged =
-      chatMessages.length !== prevMessageCount.current;
     const isNewMessage = chatMessages.length > prevMessageCount.current;
     const messagesAdded = chatMessages.length - prevMessageCount.current;
 
@@ -170,8 +166,6 @@ export default function ChatScrollHandler({
 
     // Nếu là tin nhắn mới (ở cuối) - scroll xuống và mark as read nếu đang ở bottom
     if (isNewMessage && messagesAdded > 0 && prevScrollHeight.current === 0) {
-      const wasAtBottom = checkIsAtBottom();
-
       // Scroll xuống đáy
       container.scrollTop = container.scrollHeight;
 
@@ -193,7 +187,7 @@ export default function ChatScrollHandler({
         }
       }, 100);
     }
-  }, [chatMessages.length]);
+  }, [chatMessages.length, containerRef, checkIsAtBottom, selectedConversation, userId, dispatch, hasMore]);
 
   return null; 
 }

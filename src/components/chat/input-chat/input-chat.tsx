@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Image from "next/image";
-import EmojiPicker from "emoji-picker-react";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { Icon } from "@/components/icon/icon";
+import { MessageType } from "@/constants/socket-events";
 import {
   sendMessage,
   typing,
@@ -20,7 +20,7 @@ export default function InputChat() {
   const selectedConversation = useAppSelector(
     (state) => state.chat.selectedConversation
   );
-  const typingTimeoutRef = useRef<any>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,16 +67,15 @@ export default function InputChat() {
     }
 
     const msgType =
-      images.length && message ? "mixed" : images.length ? "image" : "text";
+      images.length && message ? MessageType.MIXED : images.length ? MessageType.IMAGE : MessageType.TEXT;
 
-    // ✅ Gửi tin nhắn qua socket
     sendMessage(
-      selectedConversation.type, // "private" | "group"
+      selectedConversation.type, 
       currentUser.id,
-      selectedConversation.id, // nếu group thì id là groupId
+      selectedConversation.id, 
       message.trim(),
       imageUrls,
-      msgType
+      msgType 
     );
 
     setMessage("");
@@ -85,7 +84,7 @@ export default function InputChat() {
     // stopTyping(currentUser.id, selectedUser.id);
   };
 
-  const onEmojiClick = (emojiData: any) => {
+  const onEmojiClick = (emojiData: EmojiClickData) => {
     setMessage((prev) => prev + emojiData.emoji);
   };
 
@@ -108,6 +107,7 @@ export default function InputChat() {
               buttonClassName="bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-80 w-10 h-10"
             />
             <input
+              placeholder="..."
               ref={fileInputRef}
               id="image-upload"
               type="file"
@@ -145,6 +145,7 @@ export default function InputChat() {
         {images.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2 overflow-y-auto max-h-32 pl-4 pt-2">
             <input
+            placeholder="..."
               ref={fileInputRef}
               id="image-upload"
               type="file"

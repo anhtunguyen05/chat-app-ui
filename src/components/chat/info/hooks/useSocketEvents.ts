@@ -7,7 +7,6 @@ import { Conversation } from "@/features/chat/chatType";
 export const useSocketEvents = (
   selectedConversation: Conversation | null,
   currentUserId: string | undefined,
-  setIsTyping: (value: boolean) => void,
   setTypingUsers: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   const dispatch = useAppDispatch();
@@ -25,7 +24,6 @@ export const useSocketEvents = (
       if (senderId === currentUserId) return;
       if (conversationId !== selectedConversation.id) return;
 
-      setIsTyping(true);
       setTypingUsers((prev) =>
         prev.includes(senderId) ? prev : [...prev, senderId]
       );
@@ -40,13 +38,7 @@ export const useSocketEvents = (
     }) => {
       if (conversationId !== selectedConversation.id) return;
 
-      setTypingUsers((prev) => {
-        const newUsers = prev.filter((id) => id !== senderId);
-        if (newUsers.length === 0) {
-          setIsTyping(false);
-        }
-        return newUsers;
-      });
+      setTypingUsers((prev) => prev.filter((id) => id !== senderId));
     };
 
     const handleMessageRead = ({
@@ -82,7 +74,6 @@ export const useSocketEvents = (
     selectedConversation,
     currentUserId,
     dispatch,
-    setIsTyping,
     setTypingUsers,
   ]);
 };

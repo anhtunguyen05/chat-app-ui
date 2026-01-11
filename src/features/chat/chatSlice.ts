@@ -1,12 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { User } from "@/types/user";
 import {
   ChatState,
   Conversation,
   Message,
   Participant,
 } from "@/features/chat/chatType";
-import { set } from "zod";
 
 export const initialState: ChatState = {
   selectedConversation: null,
@@ -140,42 +138,42 @@ const chatSlice = createSlice({
         page?: number;
       }>
     ) {},
-    setMessages(state, action: PayloadAction<Object[]>) {
+    setMessages(state, action: PayloadAction<Message[]>) {
       state.messages = action.payload;
       state.page = 1; // Reset page về 1 khi load tin nhắn mới
     },
-    appendMessages(state, action: PayloadAction<Object[]>) {
+    appendMessages(state, action: PayloadAction<Message[]>) {
       const newMessages = action.payload;
-      const existingIds = new Set(state.messages.map((m: any) => m.id));
+      const existingIds = new Set(state.messages.map((m) => m.id));
 
       // Chỉ thêm những message chưa tồn tại
       const uniqueNewMessages = newMessages.filter(
-        (m: any) => !existingIds.has(m.id)
+        (m) => !existingIds.has(m.id)
       );
 
       state.messages = [...uniqueNewMessages, ...state.messages]; // thêm vào đầu
       state.page += 1; // Tăng page sau khi load thêm tin nhắn
     },
-    addMessageRequest(state, action: PayloadAction<Object>) {},
-    addMessage: (state, action: PayloadAction<Object>) => {
-      const msg = action.payload as any;
+    addMessageRequest(state, action: PayloadAction<Message>) {},
+    addMessage: (state, action: PayloadAction<Message>) => {
+      const msg = action.payload;
 
       // Kiểm tra xem message đã tồn tại chưa
-      if (state.messages.some((m: any) => m.id === msg.id)) {
+      if (state.messages.some((m) => m.id === msg.id)) {
         return; // Bỏ qua nếu đã tồn tại
       }
 
       state.messages.push(msg);
     },
-    addPendingMessageRequest(state, action: PayloadAction<any>) {},
-    addPendingMessage: (state, action: PayloadAction<any>) => {
+    addPendingMessageRequest(state, action: PayloadAction<Message>) {},
+    addPendingMessage: (state, action: PayloadAction<Message>) => {
       const msg = action.payload;
 
       // 1. Nếu message đã tồn tại → bỏ qua
-      if (state.messages.some((m: any) => m.id === msg.id)) return;
+      if (state.messages.some((m) => m.id === msg.id)) return;
 
       // 2. Chỉ add pending nếu conversation đang mở
-      if (state.selectedConversation?.id === msg.conversationId) {
+      if (state.selectedConversation?.id === msg.conversation) {
         state.messages.push(msg);
       }
 

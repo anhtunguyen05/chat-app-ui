@@ -1,21 +1,19 @@
 import React from "react";
 import { isOnlyEmoji } from "@/lib/utils";
 import UserAvatar from "@/components/user-avatar/user-avatar";
-import { Participant, Conversation } from "@/features/chat/chatType";
+import { Participant, Conversation, Message } from "@/features/chat/chatType";
 
 interface MessageBubbleProps {
-  msg: any;
+  msg: Message;
   isMine: boolean;
-  currentUserId: string | undefined;
   selectedConversation: Conversation | null;
-  chatMessages: any[];
+  chatMessages: Message[];
   seenBy: Participant[];
 }
 
 export default function MessageBubble({
   msg,
   isMine,
-  currentUserId,
   selectedConversation,
   chatMessages,
   seenBy,
@@ -85,7 +83,7 @@ export default function MessageBubble({
                 hasImages ? "border-t border-black/10" : ""
               }`}
             >
-              {isOnlyEmoji(msg.text) ? (
+              {msg.text && isOnlyEmoji(msg.text) ? (
                 <span className="text-3xl leading-none">{msg.text}</span>
               ) : (
                 <span>{msg.text}</span>
