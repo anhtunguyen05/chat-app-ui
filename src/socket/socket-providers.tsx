@@ -13,6 +13,7 @@ import { fetchPendingMessages } from "@/services/chatService";
 import { openCallWindow, closeCallWindow, isCallWindowOpen } from "@/utils/callWindow";
 import IncomingCallModal from "@/components/call/incoming-call-modal";
 import { UserSocketEvent, MessageSocketEvent, CallSocketEvent, CallType } from "@/constants/socket-events";
+import { Message } from "@/features/chat/chatType";
 
 interface CallData {
   from: string;
@@ -48,7 +49,7 @@ export default function SocketProvider() {
     fetchPending();
 
     // Lắng nghe tin nhắn đến
-    socket.on(MessageSocketEvent.RECEIVE_MESSAGE, (message) => {
+    socket.on(MessageSocketEvent.RECEIVE_MESSAGE, (message: Message) => {
       dispatch(addMessageRequest(message));
       dispatch(
         addOrUpdateConversationRequest({
@@ -59,7 +60,7 @@ export default function SocketProvider() {
     });
 
     // Tin nhắn gửi thành công
-    socket.on(MessageSocketEvent.MESSAGE_SENT, (message) => {
+    socket.on(MessageSocketEvent.MESSAGE_SENT, (message: Message) => {
       dispatch(addMessageRequest(message));
       dispatch(
         addOrUpdateConversationRequest({
@@ -74,7 +75,7 @@ export default function SocketProvider() {
     });
 
     // Nhận cuộc gọi đến
-    socket.on(CallSocketEvent.INCOMING, (data) => {
+    socket.on(CallSocketEvent.INCOMING, (data: CallData) => {
       console.log("📥 Incoming call:", data);
       // Show modal in main window first
       setIncomingCall(data);

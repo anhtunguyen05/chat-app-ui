@@ -1,5 +1,5 @@
 import { call, put, takeLatest } from "redux-saga/effects";
-import type { PayloadAction } from "@reduxjs/toolkit";
+import { current, type PayloadAction } from "@reduxjs/toolkit";
 import type { Effect } from "redux-saga/effects";
 import {
   setConversationsRequest,
@@ -40,8 +40,9 @@ function* handleSetConversations(action: PayloadAction<void>) {
   try {
     const conversations: Conversation[] = yield call(getConversations);
     yield put(setConversations(conversations));
-  } catch (error: any) {
-    console.error("Failed to set chats:", error.message || error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("Failed to set chats:", err.message || error);
   }
 }
 
@@ -50,32 +51,34 @@ function* handleSetSelectedConversation(
 ) {
   try {
     yield put(setSelectedConversation(action.payload));
-  } catch (error: any) {
-    console.error("Failed to set selected user:", error.message || error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("Failed to set selected user:", err.message || error);
   }
 }
 
 function* handleAddOrUpdateConversation(
   action: PayloadAction<{ message: Message; currentUserId: string }>
 ) {
-  const message = action.payload;
-  yield put(addOrUpdateConversation(message));
+  const { message, currentUserId } = action.payload;
+  yield put(addOrUpdateConversation({ message, currentUserId }));
 }
 
 function* handleAddPendingMessage(
   action: PayloadAction<{ message: Message; currentUserId: string }>
 ) {
-  const message = action.payload;
+  const message: Message = action.payload.message;
   yield put(addPendingMessage(message));
 }
 
 function* handleSetLastReadMessageId(action: PayloadAction<string | null>) {
   try {
     yield put(setLastReadMessageId(action.payload));
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string };
     console.error(
       "Failed to set last read message ID:",
-      error.message || error
+      err.message || error
     );
   }
 }
@@ -92,8 +95,9 @@ function* handleUpdateMessageReadStatus(
 function* handleSetActiveTab(action: PayloadAction<string>) {
   try {
     yield put(setActiveTab(action.payload));
-  } catch (error: any) {
-    console.error("Failed to set active tab:", error.message || error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("Failed to set active tab:", err.message || error);
   }
 }
 
@@ -106,7 +110,7 @@ function* handleFetchMessages(
   try {
     const { conversationId, page = 1 } = action.payload;
 
-    const messages: Object[] = yield call(
+    const messages: Message[] = yield call(
       getConversation,
       conversationId,
       page,
@@ -122,33 +126,36 @@ function* handleFetchMessages(
     if (messages.length < 20) {
       yield put(setHasMore(false));
     }
-  } catch (error: any) {
-    console.error("Failed to fetch messages:", error.message || error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("Failed to fetch messages:", err.message || error);
   }
 }
 
-function* handleAddMessage(action: PayloadAction<Object>) {
+function* handleAddMessage(action: PayloadAction<Message>) {
   try {
     yield put(addMessage(action.payload));
-  } catch (error: any) {
-    console.error("Failed to add message:", error.message || error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("Failed to add message:", err.message || error);
   }
 }
 
 function* handleSetOnlineList(action: PayloadAction<string[]>) {
   try {
     yield put(setOnlineList(action.payload));
-  } catch (error: any) {
-    console.error("Failed to set online list:", error.message || error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("Failed to set online list:", err.message || error);
   }
 }
 
 function* handleSetParticipants(
   action: PayloadAction<{ conversationId: string }>
-): Generator<Effect, void, any> {
+): Generator<Effect, void, unknown> {
   try {
     const { conversationId } = action.payload;
-    const response: any = yield call(
+    const response: unknown = yield call(
       getConversationParticipants,
       conversationId
     );
@@ -156,11 +163,12 @@ function* handleSetParticipants(
     // API có thể trả về dữ liệu trong response.data hoặc trực tiếp
     const participants: Participant[] = Array.isArray(response)
       ? response
-      : response?.data || response || [];
+      : (response as { data?: Participant[] })?.data || [];
 
     yield put(setParticipants(participants));
-  } catch (error: any) {
-    console.error("❌ Failed to fetch participants:", error.message || error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("❌ Failed to fetch participants:", err.message || error);
   }
 }
 
@@ -170,10 +178,11 @@ function* handleUpdateParticipantSeenMessage(
   try {
     const { userId, lastSeenMessage } = action.payload;
     yield put(updateParticipantSeenMessage({ userId, lastSeenMessage }));
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string };
     console.error(
       "❌ Failed to update participant seen message:",
-      error.message || error
+      err.message || error
     );
   }
 }

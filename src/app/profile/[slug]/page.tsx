@@ -6,9 +6,7 @@ import { useParams } from "next/navigation";
 import {
   Pencil,
   Camera,
-  UserPlus,
   MessageCircle,
-  UserCheck,
 } from "lucide-react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
@@ -30,6 +28,7 @@ import {
   getFriendRequestList,
 } from "@/services/friendService";
 import { RelationshipStatus } from "@/types/friend";
+import {User} from "@/types/user";
 
 export default function Profile() {
   const defaultAvatar = "/default-avatar.jpg";
@@ -46,7 +45,7 @@ export default function Profile() {
     React.useState<RelationshipStatus>("none");
   const tabs = ["Bạn bè", "Lời mời kết bạn", "Người dùng khác"];
   const [active, setActive] = React.useState("Bạn bè");
-  const [friends, setFriends] = React.useState<any[]>([]);
+  const [friends, setFriends] = React.useState<User[]>([]);
 
   const handleRelationshipChange = (newStatus: RelationshipStatus) => {
     setRelationship(newStatus);
@@ -54,7 +53,7 @@ export default function Profile() {
 
   const handleGetFriends = async (tab: string) => {
     try {
-      let result: any[] = [];
+      let result: User[] = [];
       switch (tab) {
         case "Bạn bè":
           result = await getFriendList();

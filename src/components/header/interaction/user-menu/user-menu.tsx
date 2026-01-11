@@ -14,7 +14,7 @@ import UserAvatar from "@/components/user-avatar/user-avatar";
 
 
 interface UserDropdownProps {
-  children: ReactNode; // ✅ nhận children làm trigger
+  children: ReactNode;
   name?: string;
   email?: string;
   avatarUrl?: string;
@@ -25,14 +25,12 @@ interface UserDropdownProps {
 export default function UserDropdown({
   children,
   name = "User",
-  email,
   avatarUrl,
   onLogout,
   onMoveToProfile,
 }: UserDropdownProps) {
   return (
     <DropdownMenu>
-      {/* Trigger: Bất kỳ component nào truyền vào */}
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
 
       <DropdownMenuContent

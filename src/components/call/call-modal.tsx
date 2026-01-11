@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import { socket } from "@/lib/socket";
 import { usePeerConnection } from "@/hooks/usePeerConnection";
@@ -125,7 +125,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     },
   });
 
-  const cleanupStreams = () => {
+  const cleanupStreams = useCallback(() => {
     if (remoteStream) {
       remoteStream.getTracks().forEach(track => {
         if (track.readyState !== 'ended') {
@@ -143,7 +143,35 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
     remoteStreamRef.current = null;
     cleanupControls();
     cleanup();
-  };
+  }, [remoteStream, cleanupControls, cleanup]);
+
+  const initializeCaller = useCallback(async () => {
+    try {
+      const stream = await createOffer();
+      setLocalStream(stream);
+      setLocalStreamState(stream);
+    } catch (error) {
+      console.error("❌ Error initializing caller:", error);
+      alert("Không thể truy cập camera/microphone");
+      onReject();
+    }
+  }, [createOffer, setLocalStream, onReject]);
+
+  const handleAcceptCall = useCallback(async () => {
+    setCallStatus("connecting");
+    
+    try {
+      const stream = await createAnswer(caller.offer!, caller.callType);
+      setLocalStream(stream);
+      setLocalStreamState(stream);
+      setCallStatus("connected");
+      onAccept();
+    } catch (error) {
+      console.error("Error accepting call:", error);
+      alert("Không thể truy cập camera/microphone");
+      onReject();
+    }
+  }, [createAnswer, caller.offer, caller.callType, setLocalStream, onAccept, onReject]);
 
   useEffect(() => {
     // Socket event listeners
@@ -218,37 +246,9 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       
       cleanupStreams();
     };
-  }, []);
+  }, [handleAnswer, handleIceCandidate, handleRenegotiation, handleRenegotiationAnswer, cleanupStreams, onReject, caller.offer, initializeCaller, handleAcceptCall]);
 
-  const initializeCaller = async () => {
-    try {
-      const stream = await createOffer();
-      setLocalStream(stream);
-      setLocalStreamState(stream);
-    } catch (error) {
-      console.error("❌ Error initializing caller:", error);
-      alert("Không thể truy cập camera/microphone");
-      onReject();
-    }
-  };
-
-  const handleAcceptCall = async () => {
-    setCallStatus("connecting");
-    
-    try {
-      const stream = await createAnswer(caller.offer!, caller.callType);
-      setLocalStream(stream);
-      setLocalStreamState(stream);
-      setCallStatus("connected");
-      onAccept();
-    } catch (error) {
-      console.error("Error accepting call:", error);
-      alert("Không thể truy cập camera/microphone");
-      onReject();
-    }
-  };
-
-  const handleEndCall = () => {
+  const handleEndCall = useCallback(() => {
     if (hasEndedCall.current) return;
     
     hasEndedCall.current = true;
@@ -264,7 +264,7 @@ export default function CallModal({ caller, onAccept, onReject }: CallModalProps
       
       onReject();
     }, 200);
-  };
+  }, [cleanupStreams, remotePeerId, caller.conversationId, onReject]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">

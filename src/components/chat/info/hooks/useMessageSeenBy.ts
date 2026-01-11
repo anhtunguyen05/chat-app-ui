@@ -1,15 +1,15 @@
 import React from "react";
-import { Participant } from "@/features/chat/chatType";
+import { Participant, Message } from "@/features/chat/chatType";
 
 export const useMessageSeenBy = (
   participants: Participant[],
-  chatMessages: any[],
+  chatMessages: Message[],
   currentUserId: string | undefined
 ) => {
   // Pre-compute lookup maps to avoid repeated searches
   const messageIndexMap = React.useMemo(() => {
     const map = new Map<string, number>();
-    chatMessages.forEach((msg: any, index: number) => {
+    chatMessages.forEach((msg: Message, index: number) => {
       if (msg?.id) {
         map.set(msg.id, index);
       }
@@ -19,7 +19,7 @@ export const useMessageSeenBy = (
 
   const messageTimeMap = React.useMemo(() => {
     const map = new Map<string, number>();
-    chatMessages.forEach((msg: any) => {
+    chatMessages.forEach((msg: Message) => {
       if (msg?.id && msg?.createdAt) {
         map.set(msg.id, new Date(msg.createdAt).getTime());
       }
@@ -28,7 +28,7 @@ export const useMessageSeenBy = (
   }, [chatMessages]);
 
   const getSeenBy = React.useCallback(
-    (messageId: string, isMine: boolean, senderId?: string): Participant[] => {
+    (messageId: string, senderId?: string): Participant[] => {
       if (!participants || participants.length === 0) {
         return [];
       }

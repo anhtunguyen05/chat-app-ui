@@ -24,7 +24,7 @@ export default function ChatSidebar() {
   React.useEffect(() => {
     dispatch(setConversationsRequest());
     setLoading(false);
-  }, []);
+  }, [dispatch]);
 
   // Filter conversations dựa trên activeTab và searchQuery
   const filteredConversations = React.useMemo(() => {
