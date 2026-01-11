@@ -1,16 +1,22 @@
-import React from "react";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { Icon } from "@/components/icon/icon";
 import UserAvatar from "@/components/user-avatar/user-avatar";
 import { Conversation } from "@/features/chat/chatType";
 import { timeFormat } from "@/utils/formatter";
-import { CallType } from "@/constants/socket-events";
-import { CallData } from "@/types/call";
 
+import { CallType } from "@/constants/socket-events";
 
 interface HeaderChatProps {
   selectedConversation: Conversation;
   onInfoClick: () => void;
+}
+
+interface InitiateCallData {
+  to?: string;
+  conversationId: string;
+  callType: CallType;
+  callerName?: string;
+  callerAvatar?: string;
 }
 
 export default function HeaderChat({
@@ -46,10 +52,11 @@ export default function HeaderChat({
       });
 
       // Hiển thị modal cho người gọi - modal sẽ tạo peer connection
-      const windowWithInitiateCall = window as Window & { initiateCall?: (callData: CallData) => void };
+      const windowWithInitiateCall = window as Window & {
+        initiateCall?: (callData: InitiateCallData) => void;
+      };
       if (windowWithInitiateCall.initiateCall) {
         windowWithInitiateCall.initiateCall({
-          from: currentUser?.id || "",
           to: receiverParticipantId,
           conversationId: selectedConversation.id,
           callType: CallType.VOICE,
@@ -77,10 +84,11 @@ export default function HeaderChat({
       });
 
       // Hiển thị modal cho người gọi - modal sẽ tạo peer connection
-      const windowWithInitiateCall = window as Window & { initiateCall?: (callData: CallData) => void };
+      const windowWithInitiateCall = window as Window & {
+        initiateCall?: (callData: InitiateCallData) => void;
+      };
       if (windowWithInitiateCall.initiateCall) {
         windowWithInitiateCall.initiateCall({
-          from: currentUser?.id || "",
           to: receiverParticipantId,
           conversationId: selectedConversation.id,
           callType: CallType.VIDEO,
@@ -94,7 +102,7 @@ export default function HeaderChat({
     }
   };
 
-  const formatLastSeen = (time: Date) => {
+  const formatLastSeen = (time: any) => {
     if (!time) return "";
     const offTime = timeFormat(time);
     return `Hoạt động ${offTime}`;
@@ -112,7 +120,7 @@ export default function HeaderChat({
           <p className="text-sm text-gray-500">
             {isOnline && selectedConversation.type === "private"
               ? "Đang hoạt động"
-              : formatLastSeen(selectedConversation.lastSeen as Date)}
+              : formatLastSeen(selectedConversation.lastSeen)}
           </p>
         </div>
       </div>
