@@ -91,7 +91,7 @@ export function stopTyping(senderId: string, conversationId: string) {
   });
 }
 
-export async function fetchPendingMessages(): Promise<object[]> {
+export async function fetchPendingMessages(): Promise<Message[]> {
   const res = await api.get("/chats/pending-messages");
   return res.data.messages;
 }
