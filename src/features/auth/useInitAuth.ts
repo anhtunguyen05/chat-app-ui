@@ -15,7 +15,7 @@ export default function useInitAuth() {
       try {
         const res = await getCurrentUser();
         dispatch(setUser(res));
-        connectSocket(); // Connect socket sau khi verify user thành công
+        connectSocket(); 
       } catch (err) {
         // Nếu 401 → interceptor sẽ tự động thử refresh token
         // Nếu refresh fail → không làm gì (user chưa login)
