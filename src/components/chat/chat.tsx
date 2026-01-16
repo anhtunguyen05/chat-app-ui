@@ -17,10 +17,10 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex-1 bg-neutral-100 p-4 overscroll-none">
+    <div className="flex-1 bg-back p-4 overscroll-none">
       <div className="flex w-full h-full gap-4 overscroll-none">
         {/* Main chat area */}
-        <div className={`flex flex-col bg-white rounded-2xl overscroll-none transition-all duration-300 ${showInfoPanel ? 'flex-[2]' : 'flex-1'}`}>
+        <div className={`flex flex-col rounded-2xl overscroll-none transition-all duration-300 ${showInfoPanel ? 'flex-[2]' : 'flex-1'}`}>
           <HeaderChat
             selectedConversation={selectedConversation}
             onInfoClick={() => setShowInfoPanel(!showInfoPanel)}

@@ -89,7 +89,7 @@ export default function InputChat() {
   };
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 bg-transparent dark:bg-neutral-900 border-t dark:border-neutral-800">
+    <div className="flex items-center gap-2 px-3 py-2 bg-container border-t">
       {/* LEFT ICONS */}
 
       <div className="flex items-center gap-2 text-blue-600">
@@ -137,7 +137,7 @@ export default function InputChat() {
 
       {/* INPUT ZONE */}
       <div
-        className={`flex flex-col flex-1 bg-gray-100 dark:bg-neutral-800 rounded-2xl transition-all duration-200 ${
+        className={`flex flex-col flex-1 bg-input rounded-2xl transition-all duration-200 ${
           images.length > 0 ? "max-h-60" : ""
         }`}
       >
@@ -145,7 +145,7 @@ export default function InputChat() {
         {images.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2 overflow-y-auto max-h-32 pl-4 pt-2">
             <input
-            placeholder="..."
+              placeholder="..."
               ref={fileInputRef}
               id="image-upload"
               type="file"
@@ -180,7 +180,7 @@ export default function InputChat() {
         )}
 
         {/* TEXT + EMOJI */}
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center bg-transparent gap-2">
           <input
             type="text"
             placeholder="Aa"
@@ -192,7 +192,7 @@ export default function InputChat() {
             <Icon
               name="smile"
               className="w-5 h-5 text-violet-600"
-              buttonClassName="bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800 w-10 h-10"
+              buttonClassName="bg-input dark:hover:bg-neutral-800 w-10 h-10"
               onClick={() => setShowPicker(!showPicker)}
             />
             {showPicker && (

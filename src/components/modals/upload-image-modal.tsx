@@ -59,10 +59,11 @@ export default function UploadImageModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
 
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col bg-default dark:bg-bubble">
         <DialogHeader>
           <DialogTitle>
-            {title || (type === "avatar" ? "Chọn ảnh đại diện" : "Chọn ảnh bìa")}
+            {title ||
+              (type === "avatar" ? "Chọn ảnh đại diện" : "Chọn ảnh bìa")}
           </DialogTitle>
         </DialogHeader>
 

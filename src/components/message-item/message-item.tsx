@@ -19,8 +19,8 @@ export default function MessageItem({
       className={`px-3 py-1 rounded-full font-medium transition-colors
 ${
   active
-    ? "bg-blue-50 text-blue-600"
-    : "bg-gray-100 text-black hover:bg-gray-200"
+    ? "bg-bubble-active text-text-active"
+    : "text-text hover:bg-bubble-hover"
 }
 ${className ?? ""}`}
     >

@@ -2,5 +2,11 @@
 import { Icon } from "@/components/icon/icon";
 
 export default function Notification() {
-  return <Icon name="bell" className="w-5 h-5 text-gray-700"></Icon>;
+  return (
+    <Icon
+      name="bell"
+      className="w-6 h-6 text-text"
+      buttonClassName="bg-icon hover:bg-icon-hover w-10 h-10"
+    ></Icon>
+  );
 }

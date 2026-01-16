@@ -51,7 +51,7 @@ export default function MessageBubble({
           className={`rounded-2xl overflow-hidden ${
             isMine
               ? "bg-violet-600 text-white rounded-br-none"
-              : "bg-gray-200 text-black rounded-bl-none"
+              : "bg-bubble text-black rounded-bl-none"
           }`}
         >
           {/* Ảnh */}
@@ -84,9 +84,9 @@ export default function MessageBubble({
               }`}
             >
               {msg.text && isOnlyEmoji(msg.text) ? (
-                <span className="text-3xl leading-none">{msg.text}</span>
+                <span className="text-3xl leading-none text-text">{msg.text}</span>
               ) : (
-                <span>{msg.text}</span>
+                <span className="text-text">{msg.text}</span>
               )}
             </div>
           )}

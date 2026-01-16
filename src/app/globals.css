@@ -4,7 +4,18 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
+  --color-default: var(--default);
+  --color-container: var(--container);
+  --color-input: var(--input);
+  --color-text: var(--text);
+  --color-text-chat-item: var(--text-chat-item);
+  --color-text-active: var(--text-active);
+  --color-bubble: var(--bubble);
+  --color-back: var(--back);
+  --color-icon: var(--icon);
+  --color-icon-hover: var(--icon-hover);
+  --color-bubble-active: var(--bubble-active);
+  --color-bubble-hover: var(--bubble-hover);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -45,7 +56,18 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --default: oklch(1 0 0);
+  --container: #ffffff;
+  --input: #f0f2f5;
+  --text: #000000;
+  --text-chat-item: #8b8d90;
+  --text-active: #4174d0;
+  --bubble: #f0f0f0;
+  --back: #f2f4f7;
+  --icon: #e3e5e8;
+  --icon-hover: #d7d9dc;
+  --bubble-active: #edf5fe;
+  --bubble-hover: #f2f2f2;
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
@@ -79,7 +101,18 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
+  --default: #252728;
+  --container: #242526;
+  --input: #333334;
+  --text: #ffffff;
+  --text-chat-item: #8b8d90;
+  --text-active: #759fdd;
+  --bubble: #303030;
+  --back: #1b1b1c;
+  --icon: #3b3d3e;
+  --icon-hover: #4f5151;
+  --bubble-active: #28303d;
+  --bubble-hover: #3b3d3e;
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
   --card-foreground: oklch(0.984 0.003 247.858);
@@ -117,6 +150,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-default text-foreground;
   }
 }

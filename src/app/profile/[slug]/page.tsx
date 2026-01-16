@@ -101,10 +101,10 @@ export default function Profile() {
       <Header />
 
       {/* Nội dung profile */}
-      <div className="flex justify-center shadow-sm">
-        <div className="w-full xl:max-w-7xl px-4">
+      <div className="flex justify-center shadow-sm bg-default dark:bg-bubble">
+        <div className="w-full xl:max-w-7xl px-4 ">
           {/* Cover photo */}
-          <div className="relative w-full h-100 bg-gray-300">
+          <div className="relative w-full h-100 bg-default">
             <Image
               src={profileUser?.coverUrl || defaultAvatar}
               alt="cover"
@@ -116,7 +116,7 @@ export default function Profile() {
               type="cover"
               onUpload={(file) => dispatch(updateCoverRequest({ file }))}
             >
-              <button className="flex justify-center items-center gap-1 absolute bottom-3 right-3 bg-white px-3 py-1 rounded-md shadow text-sm">
+              <button className="flex justify-center items-center gap-1 absolute bottom-3 right-3 bg-icon px-3 py-1 rounded-md shadow text-sm">
                 <Camera /> Thêm ảnh bìa
               </button>
             </UploadImageModal>
@@ -145,7 +145,7 @@ export default function Profile() {
                         dispatch(updateAvatarRequest({ file }))
                       }
                     >
-                      <Icon name="camera"></Icon>
+                      <Icon name="camera" className="w-6 h-6 text-text"></Icon>
                     </UploadImageModal>
                   </button>
                 </div>
@@ -218,9 +218,9 @@ export default function Profile() {
           </div>
         </div>
       </div>
-      <div className="bg-gray-300">
+      <div className="bg-bubble dark:bg-default">
         <div className="flex justify-center shadow-sm pt-4">
-          <div className="w-full xl:max-w-6xl px-4 py-4 bg-white rounded-xl">
+          <div className="w-full xl:max-w-6xl px-4 py-4 bg-default dark:bg-bubble rounded-xl">
             <FriendList tab={active} friends={friends} onChange={handleGetFriends}/>
           </div>
         </div>

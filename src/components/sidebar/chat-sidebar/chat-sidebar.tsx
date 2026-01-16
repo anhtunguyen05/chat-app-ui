@@ -57,7 +57,7 @@ export default function ChatSidebar() {
   if (loading) return <p>Loading friends...</p>;
 
   return (
-    <div className="w-full max-w-sm mx-auto bg-white h-full">
+    <div className="w-full max-w-sm mx-auto bg-default h-full">
       <div className="flex justify-between gap-4 px-4 py-2 p-4">
         <MessageItem
           active={activeTab === "all"}

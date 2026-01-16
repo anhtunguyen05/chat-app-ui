@@ -50,7 +50,7 @@ export default function ProfileModal({
         <Button variant="outline">{children}</Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg bg-default dark:bg-bubble">
         {/* Header */}
         <DialogHeader className="flex items-center justify-between sr-only">
           <DialogTitle className="text-lg font-semibold">
@@ -59,7 +59,7 @@ export default function ProfileModal({
         </DialogHeader>
 
         {/* Nội dung */}
-        <div className="flex flex-col items-center py-6">
+        <div className="flex flex-col items-center py-6 ">
           {/* Title + Add button */}
           <div className="w-full flex justify-between items-center mb-2">
             <p className="font-medium">Ảnh đại diện</p>

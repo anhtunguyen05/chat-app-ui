@@ -92,7 +92,7 @@ export function Icon({
       className={twMerge(
         clsx(
           "flex items-center justify-center rounded-full transition-colors",
-          "bg-gray-200 dark:bg-neutral-800 hover:bg-neutral-300",
+          "bg-icon hover:bg-icon-hover",
           buttonClassName
         )
       )}
