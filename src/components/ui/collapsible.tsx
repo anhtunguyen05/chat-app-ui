@@ -20,16 +20,15 @@ export function Collapsible({
     <div className="">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between hover:bg-neutral-100 rounded-lg p-4 transition-colors"
+        className="w-full flex items-center justify-between hover:bg-bubble-hover rounded-lg p-4 transition-colors"
       >
-        <h4 className="text-md font-semibold text-neutral-900">{title}</h4>
+        <h4 className="text-md font-semibold text-text">{title}</h4>
         <Icon
           name="chevronDown"
           size={18}
-          className={`text-neutral-600 transition-transform duration-200 ${
+          className={`text-text transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
-          buttonClassName="bg-transparent hover:bg-transparent"
         />
       </button>
       {isOpen && <div>{children}</div>}

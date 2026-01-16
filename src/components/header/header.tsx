@@ -7,7 +7,10 @@ import Interaction from "@/components/header/interaction/interaction";
 
 export default function Header() {
   return (
-    <header className="w-full h-14 bg-transparent dark:bg-neutral-900 text-white flex items-center justify-between px-4 shadow-sm dark:border-b dark:border-gray-700">
+    <header
+      className="sticky top-0 z-50 w-full h-14 bg-default text-white flex items-center justify-between px-4 shadow-md shadow-[0_1px_2px_rgba(0,0,0,0.08)]
+  dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
+    >
       <div className="flex items-center gap-2">
         <Image
           src="/logo.png"

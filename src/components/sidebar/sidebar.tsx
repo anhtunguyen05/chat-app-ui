@@ -5,7 +5,7 @@ import ChatSidebar from "@/components/sidebar/chat-sidebar/chat-sidebar";
 export default function Sidebar() {
   return (
     <aside
-      className="w-90 bg-transparent dark:bg-neutral-900 border-r border-gray-200 dark:border-gray-700
+      className="w-90 bg-default border-r border-gray-200 dark:border-gray-700
                       flex flex-col h-[calc(100vh-56px)]"
     >
       <HeaderSidebar />

@@ -40,7 +40,7 @@ const handleMoveToMemberProfile = (slug?: string) => {
   };
 
   return (
-    <div className="w-80 2xl:w-120 bg-white rounded-md p-4 overflow-y-auto">
+    <div className="w-80 2xl:w-120 bg-default rounded-md p-4 overflow-y-auto">
       <div className="flex flex-col">
         {/* Header */}
         <div className="flex flex-col items-center gap-3 pb-4 ">
@@ -49,7 +49,7 @@ const handleMoveToMemberProfile = (slug?: string) => {
             alt={selectedConversation.name}
             size={80}
           />
-          <h3 className="text-xl font-semibold text-neutral-900">
+          <h3 className="text-xl font-semibold text-text">
             {selectedConversation.name}
           </h3>
           <div className="flex items-center gap-10 mt-2">
@@ -63,16 +63,16 @@ const handleMoveToMemberProfile = (slug?: string) => {
                   size={23}
                   buttonClassName="w-10 h-10"
                 />
-                <span className="text-xs text-neutral-600">Trang cá nhân</span>
+                <span className="text-xs text-text">Trang cá nhân</span>
               </div>
             )}
             <div className="flex flex-col items-center gap-1">
               <Icon name="bell" size={23} buttonClassName="w-10 h-10" />
-              <span className="text-xs text-neutral-600">Tắt thông báo</span>
+              <span className="text-xs text-text">Tắt thông báo</span>
             </div>
             <div className="flex flex-col items-center gap-1">
               <Icon name="search" size={23} buttonClassName="w-10 h-10" />
-              <span className="text-xs text-neutral-600">Tìm kiếm</span>
+              <span className="text-xs text-text">Tìm kiếm</span>
             </div>
           </div>
         </div>
@@ -80,8 +80,8 @@ const handleMoveToMemberProfile = (slug?: string) => {
         {/* Thông tin đoạn chat */}
         <Collapsible title="Thông tin về đoạn chat" defaultOpen={false}>
           <div className="flex items-center gap-2 p-3 text-sm">
-            <span className="text-neutral-900 font-medium">Loại:</span>
-            <span className="text-neutral-900 font-medium">
+            <span className="text-text font-medium">Loại:</span>
+            <span className="text-text font-medium">
               {selectedConversation.type === "private"
                 ? "Trò chuyện riêng"
                 : "Nhóm"}
@@ -95,15 +95,15 @@ const handleMoveToMemberProfile = (slug?: string) => {
             <Icon name="palette" size={20} className="text-orange-600" />
             <span className="text-sm text-neutral-700">Đổi chủ đề</span>
           </button> */}
-          <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-100 transition-colors">
+          <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-bubble-hover transition-colors">
             <Icon name="smile" size={20} className="text-yellow-600" />
-            <span className="text-md font-semibold text-neutral-900">
+            <span className="text-md font-semibold text-text">
               Thay đổi biểu tượng cảm xúc
             </span>
           </button>
-          <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-100 transition-colors">
+          <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-bubble-hover transition-colors">
             <span className="text-md font-semibold ">Aa</span>
-            <span className="text-md text-neutral-900 font-semibold">
+            <span className="text-md text-text font-semibold">
               Chỉnh sửa biệt danh
             </span>
           </button>
@@ -114,11 +114,11 @@ const handleMoveToMemberProfile = (slug?: string) => {
             {participants.map((participant) => (
               <div
                 key={participant.id}
-                className="flex items-center justify-between p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                className="flex items-center justify-between p-2 rounded-lg hover:bg-bubble-hover transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <UserAvatar src={participant.avatarUrl} size={30} />
-                  <span className="text-sm text-neutral-900 font-medium">
+                  <span className="text-sm text-text font-medium">
                     {participant.nickname}
                   </span>
                 </div>
@@ -149,9 +149,9 @@ const handleMoveToMemberProfile = (slug?: string) => {
 
         {/* File phương tiện & File */}
         <Collapsible title="File phương tiện & file" defaultOpen={true}>
-          <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-100 transition-colors">
+          <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-bubble-hover transition-colors">
             <Icon name="image" size={20} className="text-violet-600" />
-            <span className="text-md text-neutral-900 font-semibold">
+            <span className="text-md text-text font-semibold">
               File phương tiện
             </span>
           </button>

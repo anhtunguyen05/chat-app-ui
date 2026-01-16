@@ -25,7 +25,7 @@ export default function ChatItem({ conversation, onClick, active = false }: Chat
   return (
     <div
       className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${
-        active ? "bg-blue-50" : "hover:bg-gray-100"
+        active ? "bg-bubble-active" : "hover:bg-bubble-hover"
       }`}
       onClick={onClick}
     >
@@ -41,9 +41,7 @@ export default function ChatItem({ conversation, onClick, active = false }: Chat
           )}
         </div>
 
-        <p className="text-sm truncate text-gray-600">
-          {displayMessage}
-        </p>
+        <p className="text-sm truncate text-text-chat-item">{displayMessage}</p>
       </div>
 
       {unread && <span className="w-2 h-2 bg-blue-500 rounded-full" />}

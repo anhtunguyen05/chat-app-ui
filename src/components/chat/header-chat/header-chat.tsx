@@ -109,7 +109,10 @@ export default function HeaderChat({
   };
 
   return (
-    <div className="flex w-full h-16 items-center justify-between px-4 py-2 rounded-t-lg shadow-sm bg-white dark:bg-neutral-900">
+    <div
+      className=" sticky top-0 z-50 flex w-full h-16 items-center justify-between px-4 py-2 rounded-t-lg shadow-sm shadow-[0_1px_2px_rgba(0,0,0,0.08)]
+  dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)] bg-container"
+    >
       {/* Left: Avatar + Info */}
       <div className="flex items-center gap-3">
         <UserAvatar src={selectedConversation?.avatar}></UserAvatar>

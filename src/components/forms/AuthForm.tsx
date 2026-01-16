@@ -88,7 +88,7 @@ export function AuthForm({ type }: { type: "login" | "register" }) {
   }
 
   return (
-    <div className="mx-auto w-[350px] rounded-lg border p-6 shadow-sm bg-white">
+    <div className="mx-auto w-[350px] rounded-lg border p-6 shadow-sm bg-default">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <h1 className="text-2xl font-bold text-center">
