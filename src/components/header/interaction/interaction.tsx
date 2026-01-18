@@ -15,7 +15,7 @@ export default function Interaction() {
 
   const handleLogout = async () => {
     dispatch(logoutRequest());
-    router.push("/auth/login");
+    router.push("/login");
   };
 
   const handleMoveToProfile = () => {
@@ -27,7 +27,7 @@ export default function Interaction() {
       <Notification />
       <UserDropdown
         name={currentUser?.nickname || "User"}
-        email="anhtu@example.com"
+        email={currentUser?.email || "anhtu@example.com"}
         avatarUrl={currentUser?.avatarUrl}
         onLogout={() => handleLogout()}
         onMoveToProfile={() => handleMoveToProfile()}
