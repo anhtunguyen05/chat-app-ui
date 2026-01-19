@@ -59,9 +59,10 @@ api.interceptors.response.use(
         // Chỉ redirect nếu không ở trang auth
         if (
           typeof window !== "undefined" &&
-          !window.location.pathname.startsWith("/auth")
+          !window.location.pathname.startsWith("/login") &&
+          !window.location.pathname.startsWith("/register")
         ) {
-          window.location.href = "/auth/login";
+          window.location.href = "/login";
         }
         return Promise.reject(err);
       } finally {
